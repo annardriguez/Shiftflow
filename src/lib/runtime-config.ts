@@ -13,8 +13,15 @@ let cached: RuntimeConfig | undefined;
 export function runtimeConfig(): RuntimeConfig {
   if (cached) return cached;
   let config: RuntimeConfig;
+  const cloud = process.env.SHIFTFLOW_CLOUD === "1";
   try {
-    config = JSON.parse(
+    config = cloud ? {
+      appDatabaseUrl: process.env.SHIFTFLOW_APP_DATABASE_URL ?? "",
+      authDatabaseUrl: process.env.SHIFTFLOW_AUTH_DATABASE_URL ?? "",
+      authSecret: process.env.SHIFTFLOW_AUTH_SECRET ?? "",
+      engineToken: process.env.SHIFTFLOW_ENGINE_TOKEN ?? "",
+      origin: process.env.SHIFTFLOW_PUBLIC_ORIGIN ?? "",
+    } : JSON.parse(
       readFileSync(path.join(dataDirectory(), "runtime.json"), "utf8"),
     );
   } catch {
@@ -24,6 +31,11 @@ export function runtimeConfig(): RuntimeConfig {
   }
   for (const value of [config.appDatabaseUrl, config.authDatabaseUrl]) {
     const u = new URL(value);
+    if (cloud) {
+      if (u.protocol !== "postgresql:" || !u.hostname.endsWith(".neon.tech") || u.searchParams.get("sslmode") !== "verify-full")
+        throw new Error("Hosted ShiftFlow requires a verified TLS Neon connection.");
+      continue;
+    }
     if (
       !["127.0.0.1", "localhost", "[::1]"].includes(u.hostname) ||
       u.protocol !== "postgresql:"
