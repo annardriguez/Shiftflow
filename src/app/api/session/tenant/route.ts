@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { sessionInfo, tenantCookie } from "@/lib/session";
-import { localOnly } from "@/lib/http";
+import { localOnly, publicOrigin } from "@/lib/http";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     response.cookies.set(tenantCookie, member.tenant_id, {
       httpOnly: true,
       sameSite: "strict",
+      secure: !!publicOrigin(),
       path: "/",
       maxAge: 28800,
     });

@@ -67,6 +67,7 @@ The app now reads/writes PostgreSQL exclusively. Missing/unavailable PostgreSQL 
 
 ## Documentation
 
+- [Put the demo online for free (Hugging Face Spaces)](docs/deploy.md)
 - [Product redesign: information architecture, swap experience, design system and what is real vs demo](docs/product-redesign.md)
 - [Milestone 5: setup, security boundaries, administration, backups and remaining pilot gates](docs/milestone5.md)
 - [Architecture](docs/architecture.md), [data model](docs/data-model.md), [optimization model](docs/optimization-model.md)

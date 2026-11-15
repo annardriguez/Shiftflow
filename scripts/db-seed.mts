@@ -83,7 +83,13 @@ async function ensureAccount(
       ...info,
       id: randomUUID(),
       actorId: info.employeeId ?? "",
-      password: randomBytes(18).toString("base64url"),
+      // A hosted public demo sets one shared, known password for its
+      // fictional accounts; otherwise each account gets a private random one.
+      password:
+        process.env.SHIFTFLOW_DEMO_PASSWORD &&
+        process.env.SHIFTFLOW_DEMO_PASSWORD.length >= 12
+          ? process.env.SHIFTFLOW_DEMO_PASSWORD
+          : randomBytes(18).toString("base64url"),
       restaurant,
     };
     journal.accounts.push(record);

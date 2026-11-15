@@ -1,0 +1,37 @@
+# Publishes the hosted demo to a Hugging Face Space on every push to main.
+# Setup (once): add repository secret HF_TOKEN (a Hugging Face write token)
+# and repository variable HF_SPACE (e.g. "your-name/shiftflow").
+name: Deploy demo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: vars.HF_SPACE != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          set -eu
+          # Spaces reject plain-git binaries; the demo needs none of these.
+          rm -rf .git artifacts shiftflow-milestone5-source.zip
+          # Spaces read their configuration from README front matter.
+          {
+            printf -- '---\ntitle: ShiftFlow\nsdk: docker\napp_port: 7860\npinned: false\n---\n\n'
+            cat README.md
+          } > README.space.md
+          mv README.space.md README.md
+          git init -q -b main
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Deploy ${GITHUB_SHA}"
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" main
