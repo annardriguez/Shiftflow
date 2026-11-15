@@ -1,0 +1,9 @@
+**/node_modules
+.next
+.data
+**/.venv
+.git
+artifacts
+shiftflow-milestone5-source.zip
+**/__pycache__
+.pytest_cache

@@ -30,13 +30,21 @@ export function runtimeConfig(): RuntimeConfig {
     )
       throw new Error("Only loopback PostgreSQL connections are allowed.");
   }
-  config.origin = process.env.SHIFTFLOW_ORIGIN || config.origin;
-  const origin = new URL(config.origin);
-  if (
-    !["127.0.0.1", "localhost", "[::1]"].includes(origin.hostname) ||
-    origin.protocol !== "http:"
-  )
-    throw new Error("ShiftFlow is configured for local HTTP only.");
+  const pub = process.env.SHIFTFLOW_PUBLIC_ORIGIN;
+  if (pub) {
+    const u = new URL(pub);
+    if (u.protocol !== "https:")
+      throw new Error("SHIFTFLOW_PUBLIC_ORIGIN must be an https:// address.");
+    config.origin = u.origin;
+  } else {
+    config.origin = process.env.SHIFTFLOW_ORIGIN || config.origin;
+    const origin = new URL(config.origin);
+    if (
+      !["127.0.0.1", "localhost", "[::1]"].includes(origin.hostname) ||
+      origin.protocol !== "http:"
+    )
+      throw new Error("ShiftFlow is configured for local HTTP only.");
+  }
   if (config.authSecret.length < 32 || config.engineToken.length < 32)
     throw new Error("Missing local service secrets.");
   return (cached = config);

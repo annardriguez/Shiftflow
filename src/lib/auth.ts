@@ -49,7 +49,7 @@ export function authOptions(pool?: Pool): BetterAuthOptions {
       defaultCookieAttributes: {
         httpOnly: true,
         sameSite: "strict",
-        secure: false,
+        secure: c.origin.startsWith("https:"),
       },
     },
     telemetry: { enabled: false },
