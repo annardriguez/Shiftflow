@@ -1,0 +1,2716 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ShiftFlow Scheduling Engine",
+    "description": "Local fictional-data CP-SAT service. A 200 response does not imply a valid roster: inspect each alternative's status and validation.valid. No Strobbo integration.",
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fixtures/{scenario}": {
+      "get": {
+        "summary": "Get Fixture",
+        "operationId": "get_fixture_v1_fixtures__scenario__get",
+        "parameters": [
+          {
+            "name": "scenario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "normal",
+                "high-demand",
+                "shortage",
+                "infeasible"
+              ],
+              "type": "string",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolveRequest"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/schedule-runs": {
+      "post": {
+        "summary": "Schedule Run",
+        "description": "Bounded synchronous run. Returns genuine statuses, including UNKNOWN/INFEASIBLE.",
+        "operationId": "schedule_run_v1_schedule_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolveResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/schedule-runs/{run_id}": {
+      "get": {
+        "summary": "Get Run",
+        "operationId": "get_run_v1_schedule_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolveResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/validate": {
+      "post": {
+        "summary": "Validate",
+        "operationId": "validate_v1_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workspace-snapshot": {
+      "post": {
+        "summary": "Workspace Snapshot",
+        "operationId": "workspace_snapshot_v1_workspace_snapshot_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchedulingInput"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workspace-solve": {
+      "post": {
+        "summary": "Workspace Solve",
+        "operationId": "workspace_solve_v1_workspace_solve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolveResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Assignment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "employee_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Employee Id"
+          },
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "start": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "End"
+          },
+          "break_start": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "multipleOf": 30.0,
+                "maximum": 1440.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Break Start"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 120.0,
+            "minimum": 0.0,
+            "title": "Break Minutes",
+            "default": 0
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Opening",
+              "Midday",
+              "Closing"
+            ],
+            "title": "Kind"
+          },
+          "required_skills": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Required Skills",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "employee_id",
+          "day",
+          "start",
+          "end",
+          "kind"
+        ],
+        "title": "Assignment"
+      },
+      "Availability": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "windows": {
+            "items": {
+              "$ref": "#/components/schemas/Window"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Windows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "windows"
+        ],
+        "title": "Availability"
+      },
+      "Budget": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "paid_units": {
+            "type": "integer",
+            "maximum": 600.0,
+            "minimum": 0.0,
+            "title": "Paid Units"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "paid_units"
+        ],
+        "title": "Budget"
+      },
+      "CoverageInterval": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "minute": {
+            "type": "integer",
+            "title": "Minute"
+          },
+          "actual": {
+            "type": "integer",
+            "title": "Actual"
+          },
+          "target": {
+            "type": "integer",
+            "title": "Target"
+          },
+          "mandatory": {
+            "type": "integer",
+            "title": "Mandatory"
+          },
+          "understaffing": {
+            "type": "integer",
+            "title": "Understaffing"
+          },
+          "skills": {
+            "items": {
+              "$ref": "#/components/schemas/SkillCount"
+            },
+            "type": "array",
+            "title": "Skills"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "minute",
+          "actual",
+          "target",
+          "mandatory",
+          "understaffing",
+          "skills"
+        ],
+        "title": "CoverageInterval"
+      },
+      "DailyHours": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "paid_units": {
+            "type": "integer",
+            "title": "Paid Units"
+          },
+          "paid_hours": {
+            "type": "number",
+            "title": "Paid Hours"
+          },
+          "budget_units": {
+            "type": "integer",
+            "title": "Budget Units"
+          },
+          "budget_deviation_units": {
+            "type": "integer",
+            "title": "Budget Deviation Units"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "paid_units",
+          "paid_hours",
+          "budget_units",
+          "budget_deviation_units"
+        ],
+        "title": "DailyHours"
+      },
+      "DemoPolicy": {
+        "properties": {
+          "min_shift_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 540.0,
+            "minimum": 30.0,
+            "title": "Min Shift Minutes",
+            "default": 180
+          },
+          "max_days_per_week": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 0.0,
+            "title": "Max Days Per Week",
+            "default": 5
+          },
+          "max_consecutive_days": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Max Consecutive Days",
+            "default": 6
+          },
+          "break_after_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 540.0,
+            "minimum": 30.0,
+            "title": "Break After Minutes",
+            "default": 330
+          },
+          "min_break_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 120.0,
+            "minimum": 30.0,
+            "title": "Min Break Minutes",
+            "default": 30
+          },
+          "max_continuous_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 540.0,
+            "minimum": 30.0,
+            "title": "Max Continuous Minutes",
+            "default": 330
+          },
+          "minimum_weekly_units": {
+            "additionalProperties": {
+              "type": "integer",
+              "maximum": 120.0,
+              "minimum": 0.0
+            },
+            "type": "object",
+            "title": "Minimum Weekly Units"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DemoPolicy"
+      },
+      "DutyRules": {
+        "properties": {
+          "opening": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Opening",
+            "default": []
+          },
+          "midday": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Midday",
+            "default": []
+          },
+          "closing": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Closing",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DutyRules"
+      },
+      "Employee": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "availability": {
+            "items": {
+              "$ref": "#/components/schemas/Availability"
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Availability"
+          },
+          "absent_dates": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "maxItems": 7,
+            "title": "Absent Dates",
+            "default": []
+          },
+          "eligible_kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "Opening",
+                "Midday",
+                "Closing"
+              ]
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Eligible Kinds"
+          },
+          "qualifications": {
+            "items": {
+              "$ref": "#/components/schemas/Qualification"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Qualifications"
+          },
+          "skills_reviewed": {
+            "type": "boolean",
+            "title": "Skills Reviewed"
+          },
+          "supervision_skill_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervision Skill Id"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/EmploymentRules"
+          },
+          "preferred_min_units": {
+            "type": "integer",
+            "maximum": 336.0,
+            "minimum": 0.0,
+            "title": "Preferred Min Units"
+          },
+          "preferred_max_units": {
+            "type": "integer",
+            "maximum": 336.0,
+            "minimum": 0.0,
+            "title": "Preferred Max Units"
+          },
+          "time_preferences": {
+            "items": {
+              "$ref": "#/components/schemas/TimePreference"
+            },
+            "type": "array",
+            "maxItems": 14,
+            "title": "Time Preferences",
+            "default": []
+          },
+          "prefers_unpopular": {
+            "type": "boolean",
+            "title": "Prefers Unpopular",
+            "default": false
+          },
+          "history": {
+            "$ref": "#/components/schemas/History",
+            "default": {
+              "paid_units": 0,
+              "desired_units": 0,
+              "unpopular_shifts": 0
+            }
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "availability",
+          "eligible_kinds",
+          "qualifications",
+          "skills_reviewed",
+          "rules",
+          "preferred_min_units",
+          "preferred_max_units"
+        ],
+        "title": "Employee"
+      },
+      "EmployeeHours": {
+        "properties": {
+          "employee_id": {
+            "type": "string",
+            "title": "Employee Id"
+          },
+          "paid_units": {
+            "type": "integer",
+            "title": "Paid Units"
+          },
+          "paid_hours": {
+            "type": "number",
+            "title": "Paid Hours"
+          },
+          "preferred_min_units": {
+            "type": "integer",
+            "title": "Preferred Min Units"
+          },
+          "preferred_max_units": {
+            "type": "integer",
+            "title": "Preferred Max Units"
+          },
+          "preference_deviation_units": {
+            "type": "integer",
+            "title": "Preference Deviation Units"
+          },
+          "fairness_reference_units": {
+            "type": "integer",
+            "title": "Fairness Reference Units"
+          },
+          "fairness_capacity_upper_units": {
+            "type": "integer",
+            "title": "Fairness Capacity Upper Units"
+          },
+          "historical_fulfillment_ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Historical Fulfillment Ratio"
+          },
+          "unpopular_opportunity_days": {
+            "type": "integer",
+            "title": "Unpopular Opportunity Days"
+          },
+          "unpopular_shifts": {
+            "type": "integer",
+            "title": "Unpopular Shifts"
+          },
+          "evening_shifts": {
+            "type": "integer",
+            "title": "Evening Shifts"
+          },
+          "weekend_shifts": {
+            "type": "integer",
+            "title": "Weekend Shifts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "employee_id",
+          "paid_units",
+          "paid_hours",
+          "preferred_min_units",
+          "preferred_max_units",
+          "preference_deviation_units",
+          "fairness_reference_units",
+          "fairness_capacity_upper_units",
+          "historical_fulfillment_ratio",
+          "unpopular_opportunity_days",
+          "unpopular_shifts",
+          "evening_shifts",
+          "weekend_shifts"
+        ],
+        "title": "EmployeeHours"
+      },
+      "EmploymentRules": {
+        "properties": {
+          "min_weekly_units": {
+            "type": "integer",
+            "maximum": 336.0,
+            "minimum": 0.0,
+            "title": "Min Weekly Units"
+          },
+          "max_weekly_units": {
+            "type": "integer",
+            "maximum": 336.0,
+            "minimum": 0.0,
+            "title": "Max Weekly Units"
+          },
+          "min_shift_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 540.0,
+            "minimum": 30.0,
+            "title": "Min Shift Minutes"
+          },
+          "max_shift_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 540.0,
+            "minimum": 30.0,
+            "title": "Max Shift Minutes"
+          },
+          "max_daily_units": {
+            "type": "integer",
+            "maximum": 336.0,
+            "minimum": 0.0,
+            "title": "Max Daily Units"
+          },
+          "max_days_per_week": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 0.0,
+            "title": "Max Days Per Week"
+          },
+          "max_consecutive_days": {
+            "type": "integer",
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Max Consecutive Days"
+          },
+          "max_rolling_seven_day_units": {
+            "type": "integer",
+            "maximum": 336.0,
+            "minimum": 0.0,
+            "title": "Max Rolling Seven Day Units"
+          },
+          "min_rest_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Min Rest Minutes"
+          },
+          "break_after_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 540.0,
+            "minimum": 30.0,
+            "title": "Break After Minutes"
+          },
+          "min_break_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 120.0,
+            "minimum": 30.0,
+            "title": "Min Break Minutes"
+          },
+          "max_continuous_minutes": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 540.0,
+            "minimum": 30.0,
+            "title": "Max Continuous Minutes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "min_weekly_units",
+          "max_weekly_units",
+          "min_shift_minutes",
+          "max_shift_minutes",
+          "max_daily_units",
+          "max_days_per_week",
+          "max_consecutive_days",
+          "max_rolling_seven_day_units",
+          "min_rest_minutes",
+          "break_after_minutes",
+          "min_break_minutes",
+          "max_continuous_minutes"
+        ],
+        "title": "EmploymentRules"
+      },
+      "Generation": {
+        "properties": {
+          "start_step_minutes": {
+            "type": "integer",
+            "enum": [
+              30,
+              60
+            ],
+            "title": "Start Step Minutes",
+            "default": 60
+          },
+          "durations_minutes": {
+            "items": {
+              "type": "integer",
+              "multipleOf": 30.0,
+              "maximum": 540.0,
+              "minimum": 60.0
+            },
+            "type": "array",
+            "title": "Durations Minutes",
+            "default": [
+              240,
+              360,
+              480
+            ]
+          },
+          "break_offsets_minutes": {
+            "items": {
+              "type": "integer",
+              "multipleOf": 30.0,
+              "maximum": 480.0,
+              "minimum": 30.0
+            },
+            "type": "array",
+            "title": "Break Offsets Minutes",
+            "default": [
+              120,
+              180,
+              240
+            ]
+          },
+          "break_minutes": {
+            "type": "integer",
+            "enum": [
+              30,
+              60
+            ],
+            "title": "Break Minutes",
+            "default": 30
+          },
+          "minimum_desirable_paid_units": {
+            "type": "integer",
+            "maximum": 18.0,
+            "minimum": 0.0,
+            "title": "Minimum Desirable Paid Units",
+            "default": 8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Generation"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HeadcountRequirement": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "window": {
+            "$ref": "#/components/schemas/Window"
+          },
+          "target": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 0.0,
+            "title": "Target"
+          },
+          "mandatory": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 0.0,
+            "title": "Mandatory",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "window",
+          "target"
+        ],
+        "title": "HeadcountRequirement"
+      },
+      "History": {
+        "properties": {
+          "paid_units": {
+            "type": "integer",
+            "maximum": 2000.0,
+            "minimum": 0.0,
+            "title": "Paid Units",
+            "default": 0
+          },
+          "desired_units": {
+            "type": "integer",
+            "maximum": 2000.0,
+            "minimum": 0.0,
+            "title": "Desired Units",
+            "default": 0
+          },
+          "unpopular_shifts": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Unpopular Shifts",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "History"
+      },
+      "Issue": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "employee_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Id"
+          },
+          "day": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day"
+          },
+          "minute": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minute"
+          },
+          "skill_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Id"
+          },
+          "required": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required"
+          },
+          "actual": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "Issue"
+      },
+      "ObjectiveComponent": {
+        "properties": {
+          "raw": {
+            "type": "integer",
+            "title": "Raw"
+          },
+          "denominator": {
+            "type": "integer",
+            "title": "Denominator"
+          },
+          "normalized": {
+            "type": "number",
+            "title": "Normalized"
+          },
+          "weight": {
+            "type": "integer",
+            "title": "Weight"
+          },
+          "integer_coefficient": {
+            "type": "integer",
+            "title": "Integer Coefficient"
+          },
+          "weighted_integer": {
+            "type": "integer",
+            "title": "Weighted Integer"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "raw",
+          "denominator",
+          "normalized",
+          "weight",
+          "integer_coefficient",
+          "weighted_integer"
+        ],
+        "title": "ObjectiveComponent"
+      },
+      "Pairing": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "minute": {
+            "type": "integer",
+            "title": "Minute"
+          },
+          "trainee_id": {
+            "type": "string",
+            "title": "Trainee Id"
+          },
+          "supervisor_id": {
+            "type": "string",
+            "title": "Supervisor Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "minute",
+          "trainee_id",
+          "supervisor_id"
+        ],
+        "title": "Pairing"
+      },
+      "Qualification": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Skill Id"
+          },
+          "verified_by": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Verified By"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Verified At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "skill_id",
+          "verified_by",
+          "verified_at"
+        ],
+        "title": "Qualification"
+      },
+      "ScheduleMetrics": {
+        "properties": {
+          "total_paid_hours": {
+            "type": "number",
+            "title": "Total Paid Hours"
+          },
+          "recommended_paid_hours": {
+            "type": "number",
+            "title": "Recommended Paid Hours"
+          },
+          "budget_deviation_hours": {
+            "type": "number",
+            "title": "Budget Deviation Hours"
+          },
+          "uncovered_person_hours": {
+            "type": "number",
+            "title": "Uncovered Person Hours"
+          },
+          "target_coverage_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Coverage Percent"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/DailyHours"
+            },
+            "type": "array",
+            "title": "Daily"
+          },
+          "coverage": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageInterval"
+            },
+            "type": "array",
+            "title": "Coverage"
+          },
+          "uncovered_intervals": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageInterval"
+            },
+            "type": "array",
+            "title": "Uncovered Intervals"
+          },
+          "employees": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeeHours"
+            },
+            "type": "array",
+            "title": "Employees"
+          },
+          "fairness_score": {
+            "type": "number",
+            "title": "Fairness Score"
+          },
+          "fairness_limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fairness Limitations"
+          },
+          "history_window": {
+            "type": "string",
+            "title": "History Window"
+          },
+          "baseline_assignment_changes": {
+            "type": "integer",
+            "title": "Baseline Assignment Changes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "total_paid_hours",
+          "recommended_paid_hours",
+          "budget_deviation_hours",
+          "uncovered_person_hours",
+          "target_coverage_percent",
+          "daily",
+          "coverage",
+          "uncovered_intervals",
+          "employees",
+          "fairness_score",
+          "fairness_limitations",
+          "history_window",
+          "baseline_assignment_changes"
+        ],
+        "title": "ScheduleMetrics"
+      },
+      "ScheduleResult": {
+        "properties": {
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "budget-first",
+              "balanced",
+              "coverage-first"
+            ],
+            "title": "Strategy"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPTIMAL",
+              "FEASIBLE",
+              "INFEASIBLE",
+              "UNKNOWN",
+              "MODEL_INVALID",
+              "VALIDATION_FAILED"
+            ],
+            "title": "Status"
+          },
+          "solver_status": {
+            "type": "string",
+            "title": "Solver Status"
+          },
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/Assignment"
+            },
+            "type": "array",
+            "title": "Assignments",
+            "default": []
+          },
+          "validation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ValidationReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "objective_components": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ObjectiveComponent"
+            },
+            "type": "object",
+            "title": "Objective Components"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "type": "array",
+            "title": "Diagnostics",
+            "default": []
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/SolverMetadata"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "strategy",
+          "status",
+          "solver_status",
+          "metadata"
+        ],
+        "title": "ScheduleResult"
+      },
+      "SchedulingInput": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "fictional_data": {
+            "type": "boolean",
+            "const": true,
+            "title": "Fictional Data"
+          },
+          "rules_verified_for_demo": {
+            "type": "boolean",
+            "const": true,
+            "title": "Rules Verified For Demo"
+          },
+          "restaurant_id": {
+            "type": "string",
+            "const": "restaurant-demo",
+            "title": "Restaurant Id"
+          },
+          "source_revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision"
+          },
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone",
+            "default": "Europe/Amsterdam"
+          },
+          "operating_window": {
+            "$ref": "#/components/schemas/Window",
+            "default": {
+              "start": 600,
+              "end": 1380
+            }
+          },
+          "skill_ids": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 40,
+            "minItems": 1,
+            "title": "Skill Ids"
+          },
+          "skill_requirements": {
+            "items": {
+              "$ref": "#/components/schemas/SkillRequirement"
+            },
+            "type": "array",
+            "maxItems": 560,
+            "title": "Skill Requirements"
+          },
+          "duties": {
+            "$ref": "#/components/schemas/DutyRules"
+          },
+          "supervision_capacity": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Supervision Capacity"
+          },
+          "employees": {
+            "items": {
+              "$ref": "#/components/schemas/Employee"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Employees"
+          },
+          "headcount": {
+            "items": {
+              "$ref": "#/components/schemas/HeadcountRequirement"
+            },
+            "type": "array",
+            "maxItems": 182,
+            "title": "Headcount"
+          },
+          "budgets": {
+            "items": {
+              "$ref": "#/components/schemas/Budget"
+            },
+            "type": "array",
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "Budgets"
+          },
+          "boundary_assignments": {
+            "items": {
+              "$ref": "#/components/schemas/Assignment"
+            },
+            "type": "array",
+            "maxItems": 420,
+            "title": "Boundary Assignments",
+            "default": []
+          },
+          "baseline": {
+            "items": {
+              "$ref": "#/components/schemas/Assignment"
+            },
+            "type": "array",
+            "maxItems": 210,
+            "title": "Baseline",
+            "default": []
+          },
+          "locked_assignment_ids": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 210,
+            "title": "Locked Assignment Ids",
+            "default": []
+          },
+          "generation": {
+            "$ref": "#/components/schemas/Generation",
+            "default": {
+              "start_step_minutes": 60,
+              "durations_minutes": [
+                240,
+                360,
+                480
+              ],
+              "break_offsets_minutes": [
+                120,
+                180,
+                240
+              ],
+              "break_minutes": 30,
+              "minimum_desirable_paid_units": 8
+            }
+          },
+          "rule_version": {
+            "type": "string",
+            "title": "Rule Version",
+            "default": "fictional-adult-v1"
+          },
+          "history_window": {
+            "type": "string",
+            "title": "History Window",
+            "default": "Four fictional weeks preceding the scheduling week"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fictional_data",
+          "rules_verified_for_demo",
+          "restaurant_id",
+          "week_start",
+          "skill_ids",
+          "skill_requirements",
+          "duties",
+          "supervision_capacity",
+          "employees",
+          "headcount",
+          "budgets"
+        ],
+        "title": "SchedulingInput"
+      },
+      "SkillCount": {
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "title": "Skill Id"
+          },
+          "required": {
+            "type": "integer",
+            "title": "Required"
+          },
+          "actual": {
+            "type": "integer",
+            "title": "Actual"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "skill_id",
+          "required",
+          "actual"
+        ],
+        "title": "SkillCount"
+      },
+      "SkillRequirement": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "window": {
+            "$ref": "#/components/schemas/Window"
+          },
+          "skill_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Skill Id"
+          },
+          "minimum": {
+            "type": "integer",
+            "maximum": 40.0,
+            "minimum": 1.0,
+            "title": "Minimum"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "day",
+          "window",
+          "skill_id",
+          "minimum"
+        ],
+        "title": "SkillRequirement"
+      },
+      "SolveOptions": {
+        "properties": {
+          "max_seconds_per_strategy": {
+            "type": "number",
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Max Seconds Per Strategy",
+            "default": 15
+          },
+          "deterministic_time_limit": {
+            "type": "number",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Deterministic Time Limit",
+            "default": 2
+          },
+          "random_seed": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 0.0,
+            "title": "Random Seed",
+            "default": 17
+          },
+          "weights": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Weights"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SolveOptions"
+      },
+      "SolveRequest": {
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/SchedulingInput"
+          },
+          "strategies": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "budget-first",
+                "balanced",
+                "coverage-first"
+              ]
+            },
+            "type": "array",
+            "title": "Strategies",
+            "default": [
+              "budget-first",
+              "balanced",
+              "coverage-first"
+            ]
+          },
+          "options": {
+            "$ref": "#/components/schemas/SolveOptions",
+            "default": {
+              "max_seconds_per_strategy": 15.0,
+              "deterministic_time_limit": 2.0,
+              "random_seed": 17
+            }
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot"
+        ],
+        "title": "SolveRequest"
+      },
+      "SolveResponse": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "input_snapshot_id": {
+            "type": "string",
+            "title": "Input Snapshot Id"
+          },
+          "source_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision"
+          },
+          "fictional_data": {
+            "type": "boolean",
+            "const": true,
+            "title": "Fictional Data",
+            "default": true
+          },
+          "external_sync": {
+            "type": "string",
+            "const": "not_connected",
+            "title": "External Sync",
+            "default": "not_connected"
+          },
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleResult"
+            },
+            "type": "array",
+            "title": "Alternatives"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "input_snapshot_id",
+          "source_revision",
+          "alternatives"
+        ],
+        "title": "SolveResponse"
+      },
+      "SolverMetadata": {
+        "properties": {
+          "solver": {
+            "type": "string",
+            "title": "Solver",
+            "default": "OR-Tools CP-SAT"
+          },
+          "solver_version": {
+            "type": "string",
+            "title": "Solver Version"
+          },
+          "rule_version": {
+            "type": "string",
+            "title": "Rule Version"
+          },
+          "runtime_seconds": {
+            "type": "number",
+            "title": "Runtime Seconds"
+          },
+          "solve_seconds": {
+            "type": "number",
+            "title": "Solve Seconds"
+          },
+          "deterministic_time": {
+            "type": "number",
+            "title": "Deterministic Time"
+          },
+          "seed": {
+            "type": "integer",
+            "title": "Seed"
+          },
+          "workers": {
+            "type": "integer",
+            "title": "Workers",
+            "default": 1
+          },
+          "candidates": {
+            "type": "integer",
+            "title": "Candidates"
+          },
+          "admissible_pairs": {
+            "type": "integer",
+            "title": "Admissible Pairs"
+          },
+          "integer_objective": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Integer Objective"
+          },
+          "best_bound": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Bound"
+          },
+          "relative_gap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative Gap"
+          },
+          "objective_scale": {
+            "type": "integer",
+            "title": "Objective Scale",
+            "default": 1000000000
+          },
+          "max_coefficient_rounding_error": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Coefficient Rounding Error"
+          },
+          "max_seconds": {
+            "type": "number",
+            "title": "Max Seconds",
+            "default": 15
+          },
+          "max_deterministic_time": {
+            "type": "number",
+            "title": "Max Deterministic Time",
+            "default": 2
+          },
+          "model_fingerprint": {
+            "type": "string",
+            "title": "Model Fingerprint"
+          },
+          "warm_start_objective": {
+            "type": "string",
+            "title": "Warm Start Objective",
+            "default": "Normalized coverage and budget; full objective in second phase"
+          },
+          "feasibility_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feasibility Status"
+          },
+          "optimization_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Optimization Status"
+          },
+          "used_feasibility_incumbent": {
+            "type": "boolean",
+            "title": "Used Feasibility Incumbent",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "solver_version",
+          "rule_version",
+          "runtime_seconds",
+          "solve_seconds",
+          "deterministic_time",
+          "seed",
+          "candidates",
+          "admissible_pairs",
+          "model_fingerprint"
+        ],
+        "title": "SolverMetadata"
+      },
+      "SourceAvailabilityOverride": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Window"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "window"
+        ],
+        "title": "SourceAvailabilityOverride"
+      },
+      "SourceEmployee": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "preferredHours": {
+            "type": "number",
+            "multipleOf": 0.5,
+            "maximum": 60.0,
+            "minimum": 0.0,
+            "title": "Preferredhours"
+          },
+          "maxHours": {
+            "type": "number",
+            "multipleOf": 0.5,
+            "maximum": 60.0,
+            "minimum": 0.0,
+            "title": "Maxhours"
+          },
+          "minRestHours": {
+            "type": "number",
+            "multipleOf": 0.5,
+            "maximum": 24.0,
+            "minimum": 0.0,
+            "title": "Minresthours"
+          },
+          "maxShiftHours": {
+            "type": "number",
+            "multipleOf": 0.5,
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Maxshifthours"
+          },
+          "eligible": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "Opening",
+                "Midday",
+                "Closing"
+              ]
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Eligible"
+          },
+          "competencies": {
+            "items": {
+              "$ref": "#/components/schemas/SourceQualification"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Competencies"
+          },
+          "skillsReviewedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skillsreviewedat"
+          },
+          "supervisionSkillId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisionskillid"
+          },
+          "availability": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Window"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array",
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "Availability"
+          },
+          "absentDates": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "maxItems": 366,
+            "title": "Absentdates"
+          },
+          "availabilityOverrides": {
+            "items": {
+              "$ref": "#/components/schemas/SourceAvailabilityOverride"
+            },
+            "type": "array",
+            "maxItems": 366,
+            "title": "Availabilityoverrides",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "preferredHours",
+          "maxHours",
+          "minRestHours",
+          "maxShiftHours",
+          "eligible",
+          "competencies",
+          "skillsReviewedAt",
+          "supervisionSkillId",
+          "availability",
+          "absentDates"
+        ],
+        "title": "SourceEmployee"
+      },
+      "SourceQualification": {
+        "properties": {
+          "skillId": {
+            "type": "string",
+            "title": "Skillid"
+          },
+          "verifiedBy": {
+            "type": "string",
+            "title": "Verifiedby"
+          },
+          "verifiedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Verifiedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "skillId",
+          "verifiedBy",
+          "verifiedAt"
+        ],
+        "title": "SourceQualification"
+      },
+      "SourceRestaurant": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "const": "restaurant-demo",
+            "title": "Id"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "open": {
+            "type": "integer",
+            "title": "Open"
+          },
+          "close": {
+            "type": "integer",
+            "title": "Close"
+          },
+          "skillRules": {
+            "$ref": "#/components/schemas/SourceSkillRules"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "timezone",
+          "open",
+          "close",
+          "skillRules"
+        ],
+        "title": "SourceRestaurant"
+      },
+      "SourceRule": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "skillId": {
+            "type": "string",
+            "title": "Skillid"
+          },
+          "days": {
+            "items": {
+              "type": "integer",
+              "maximum": 6.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 7,
+            "minItems": 1,
+            "title": "Days"
+          },
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          },
+          "minimum": {
+            "type": "integer",
+            "title": "Minimum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "skillId",
+          "days",
+          "start",
+          "end",
+          "minimum"
+        ],
+        "title": "SourceRule"
+      },
+      "SourceShift": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "employeeId": {
+            "type": "string",
+            "title": "Employeeid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "start": {
+            "type": "integer",
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "title": "End"
+          },
+          "breakStart": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Breakstart"
+          },
+          "breakMinutes": {
+            "type": "integer",
+            "title": "Breakminutes"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Opening",
+              "Midday",
+              "Closing"
+            ],
+            "title": "Kind"
+          },
+          "requiredSkillIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Requiredskillids",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "employeeId",
+          "date",
+          "start",
+          "end",
+          "breakStart",
+          "breakMinutes",
+          "kind"
+        ],
+        "title": "SourceShift"
+      },
+      "SourceSkill": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "SourceSkill"
+      },
+      "SourceSkillRules": {
+        "properties": {
+          "catalog": {
+            "items": {
+              "$ref": "#/components/schemas/SourceSkill"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "minItems": 1,
+            "title": "Catalog"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRule"
+            },
+            "type": "array",
+            "maxItems": 80,
+            "title": "Requirements"
+          },
+          "requiredByKind": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "propertyNames": {
+              "enum": [
+                "Opening",
+                "Midday",
+                "Closing"
+              ]
+            },
+            "type": "object",
+            "title": "Requiredbykind"
+          },
+          "supervisionCapacity": {
+            "type": "integer",
+            "title": "Supervisioncapacity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalog",
+          "requirements",
+          "requiredByKind",
+          "supervisionCapacity"
+        ],
+        "title": "SourceSkillRules"
+      },
+      "SourceWeek": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "budgets": {
+            "items": {
+              "type": "number",
+              "multipleOf": 0.5,
+              "maximum": 300.0,
+              "minimum": 0.0
+            },
+            "type": "array",
+            "maxItems": 7,
+            "minItems": 7,
+            "title": "Budgets"
+          },
+          "shifts": {
+            "items": {
+              "$ref": "#/components/schemas/SourceShift"
+            },
+            "type": "array",
+            "maxItems": 210,
+            "title": "Shifts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "budgets",
+          "shifts"
+        ],
+        "title": "SourceWeek"
+      },
+      "SourceWorkspace": {
+        "properties": {
+          "schemaVersion": {
+            "type": "integer",
+            "const": 2,
+            "title": "Schemaversion"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "restaurant": {
+            "$ref": "#/components/schemas/SourceRestaurant"
+          },
+          "employees": {
+            "items": {
+              "$ref": "#/components/schemas/SourceEmployee"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Employees"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "high-demand",
+              "shortage"
+            ],
+            "title": "Scenario"
+          },
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/SourceWeek"
+            },
+            "type": "array",
+            "maxItems": 104,
+            "title": "Weeks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schemaVersion",
+          "revision",
+          "restaurant",
+          "employees",
+          "scenario",
+          "weeks"
+        ],
+        "title": "SourceWorkspace"
+      },
+      "TimePreference": {
+        "properties": {
+          "weekday": {
+            "type": "integer",
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Weekday"
+          },
+          "window": {
+            "$ref": "#/components/schemas/Window"
+          },
+          "cost_per_interval": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Cost Per Interval"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "weekday",
+          "window",
+          "cost_per_interval"
+        ],
+        "title": "TimePreference"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "ValidationReport": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "type": "array",
+            "title": "Issues"
+          },
+          "supervision_pairings": {
+            "items": {
+              "$ref": "#/components/schemas/Pairing"
+            },
+            "type": "array",
+            "title": "Supervision Pairings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "valid",
+          "issues",
+          "supervision_pairings"
+        ],
+        "title": "ValidationReport"
+      },
+      "ValidationRequest": {
+        "properties": {
+          "snapshot": {
+            "$ref": "#/components/schemas/SchedulingInput"
+          },
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/Assignment"
+            },
+            "type": "array",
+            "maxItems": 210,
+            "title": "Assignments"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "snapshot",
+          "assignments"
+        ],
+        "title": "ValidationRequest"
+      },
+      "Weights": {
+        "properties": {
+          "understaffing": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Understaffing"
+          },
+          "budget": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Budget"
+          },
+          "preferences": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Preferences"
+          },
+          "fairness": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Fairness"
+          },
+          "unpopular": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Unpopular"
+          },
+          "stability": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Stability"
+          },
+          "short_shifts": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Short Shifts",
+            "default": 5
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "understaffing",
+          "budget",
+          "preferences",
+          "fairness",
+          "unpopular",
+          "stability"
+        ],
+        "title": "Weights"
+      },
+      "Window": {
+        "properties": {
+          "start": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "multipleOf": 30.0,
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "End"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Window"
+      },
+      "WorkspaceRequest": {
+        "properties": {
+          "fictional_data": {
+            "type": "boolean",
+            "const": true,
+            "title": "Fictional Data"
+          },
+          "rules_verified_for_demo": {
+            "type": "boolean",
+            "const": true,
+            "title": "Rules Verified For Demo"
+          },
+          "workspace": {
+            "$ref": "#/components/schemas/SourceWorkspace"
+          },
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start"
+          },
+          "demo_policy": {
+            "$ref": "#/components/schemas/DemoPolicy",
+            "default": {
+              "min_shift_minutes": 180,
+              "max_days_per_week": 5,
+              "max_consecutive_days": 6,
+              "break_after_minutes": 330,
+              "min_break_minutes": 30,
+              "max_continuous_minutes": 330,
+              "minimum_weekly_units": {}
+            }
+          },
+          "locked_assignment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Locked Assignment Ids",
+            "default": []
+          },
+          "strategies": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "budget-first",
+                "balanced",
+                "coverage-first"
+              ]
+            },
+            "type": "array",
+            "title": "Strategies",
+            "default": [
+              "budget-first",
+              "balanced",
+              "coverage-first"
+            ]
+          },
+          "options": {
+            "$ref": "#/components/schemas/SolveOptions",
+            "default": {
+              "max_seconds_per_strategy": 15.0,
+              "deterministic_time_limit": 2.0,
+              "random_seed": 17
+            }
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fictional_data",
+          "rules_verified_for_demo",
+          "workspace",
+          "week_start"
+        ],
+        "title": "WorkspaceRequest"
+      }
+    }
+  }
+}

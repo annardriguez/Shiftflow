@@ -1,0 +1,41 @@
+{
+  "milestone": 4,
+  "verifiedAt": "2026-11-15T13:55:25.712Z",
+  "fictionalDataOnly": true,
+  "externalSync": "not_connected",
+  "tests": {
+    "typescriptDomain": 57,
+    "python": 45,
+    "workspaceHttpSubtests": 16,
+    "planningHttpSubtests": 8,
+    "workforceHttpSubtests": 15
+  },
+  "productionBuild": "passed",
+  "browser": {
+    "coverLifecycle": "submitted → colleague accepted → manager revalidated and applied",
+    "swapLifecycle": "submitted → colleague accepted → manager revalidated and applied",
+    "bothAppliedHistoriesHaveThreeVerifiedActors": true,
+    "chronologicalRequestReplayMatchesSavedRoster": true,
+    "independentFinalRosterValidation": true,
+    "timeOffConflict": "Visible absence-conflict error; request remains pending, roster unchanged",
+    "savedRevision": 7,
+    "notifications": 7,
+    "mobile": {
+      "width": 390,
+      "documentScrollWidth": 390,
+      "dialogWidth": 358
+    },
+    "employeeCompetencyBadges": "verified",
+    "eligibilityRefresh": "verified",
+    "consoleErrors": 0
+  },
+  "offlineEngine": {
+    "verifiedAt": "2026-11-15T13:54:58.566Z",
+    "candidateResponseStatus": 422,
+    "noEligibilityDecisionsReturned": true,
+    "approvalResponseStatus": 422,
+    "rosterRequestAuditAndNotificationsUnchanged": true
+  },
+  "dataIsolation": "All workflow/browser tests used temporary data; original project workspace not replaced",
+  "identityBoundary": "Selectable fictional demo sessions with server role/ownership checks; not production authentication"
+}

@@ -1,0 +1,29 @@
+{
+  "milestone": 3,
+  "verifiedAt": "2026-11-15T13:14:13.337Z",
+  "fictionalDataOnly": true,
+  "externalSync": "not_connected",
+  "tests": {
+    "typescriptDomain": 54,
+    "python": 43,
+    "workspaceHttpSubtests": 16,
+    "planningHttpSubtests": 8
+  },
+  "productionBuild": "passed",
+  "browser": {
+    "flow": "Generate three real strategies → edit shift by +30m using keyboard → validate → atomic save → CSV download",
+    "savedRevision": 2,
+    "generatedHours": 125.5,
+    "editedSavedHours": 126,
+    "independentlyRevalidated": true,
+    "csvContainsEditedTime": true,
+    "desktopWidth": 1093,
+    "mobile": {
+      "width": 390,
+      "documentScrollWidth": 390
+    },
+    "consoleErrors": 0
+  },
+  "offlineEngine": "Explicit actionable error; workspace unchanged",
+  "isolation": "All browser/API tests used temporary data outside the project data directory"
+}

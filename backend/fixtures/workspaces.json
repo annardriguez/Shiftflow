@@ -1,0 +1,3987 @@
+{
+  "normal": {
+    "schemaVersion": 2,
+    "revision": 0,
+    "scenario": "normal",
+    "restaurant": {
+      "id": "restaurant-demo",
+      "name": "Hawaiian Poké Bowl",
+      "location": "Utrecht, Netherlands",
+      "timezone": "Europe/Amsterdam",
+      "open": 600,
+      "close": 1380,
+      "skillRules": {
+        "catalog": [
+          {
+            "id": "open",
+            "name": "Can open"
+          },
+          {
+            "id": "close",
+            "name": "Can close independently"
+          },
+          {
+            "id": "train",
+            "name": "Can train / supervise"
+          },
+          {
+            "id": "service",
+            "name": "General service"
+          }
+        ],
+        "requirements": [
+          {
+            "id": "opening",
+            "skillId": "open",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 600,
+            "end": 660,
+            "minimum": 1
+          },
+          {
+            "id": "closing",
+            "skillId": "close",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 1290,
+            "end": 1380,
+            "minimum": 1
+          },
+          {
+            "id": "service",
+            "skillId": "service",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 660,
+            "end": 1290,
+            "minimum": 1
+          }
+        ],
+        "requiredByKind": {
+          "Opening": [
+            "service"
+          ],
+          "Midday": [
+            "service"
+          ],
+          "Closing": [
+            "service"
+          ]
+        },
+        "supervisionCapacity": 2
+      }
+    },
+    "employees": [
+      {
+        "id": "emp-1",
+        "name": "Nora de Vries",
+        "email": "nora@example.test",
+        "role": "Shift leader",
+        "color": "sage",
+        "preferredHours": 28,
+        "maxHours": 40,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-2",
+        "name": "Liam van Dijk",
+        "email": "liam@example.test",
+        "role": "Shift leader",
+        "color": "blue",
+        "preferredHours": 32,
+        "maxHours": 40,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-3",
+        "name": "Sofia Bakker",
+        "email": "sofia@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-4",
+        "name": "Daan Visser",
+        "email": "daan@example.test",
+        "role": "Team member",
+        "color": "lilac",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-5",
+        "name": "Emma Jansen",
+        "email": "emma@example.test",
+        "role": "Team member",
+        "color": "rose",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-6",
+        "name": "Noah Smit",
+        "email": "noah@example.test",
+        "role": "Team member",
+        "color": "sand",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-7",
+        "name": "Yara Meijer",
+        "email": "yara@example.test",
+        "role": "Team member",
+        "color": "blue",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": [
+          "2026-11-19",
+          "2026-11-20"
+        ]
+      },
+      {
+        "id": "emp-8",
+        "name": "Lucas Bos",
+        "email": "lucas@example.test",
+        "role": "Team member",
+        "color": "sage",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-9",
+        "name": "Mila Dekker",
+        "email": "mila@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 12,
+        "maxHours": 20,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-10",
+        "name": "Finn Mulder",
+        "email": "finn@example.test",
+        "role": "Team member",
+        "color": "lilac",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-11",
+        "name": "Zoë de Groot",
+        "email": "zoë@example.test",
+        "role": "Team member",
+        "color": "rose",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-12",
+        "name": "Sem Peters",
+        "email": "sem@example.test",
+        "role": "Team member",
+        "color": "sand",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-13",
+        "name": "Julia Hendriks",
+        "email": "julia@example.test",
+        "role": "Team member",
+        "color": "sage",
+        "preferredHours": 12,
+        "maxHours": 20,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-14",
+        "name": "Adam Vos",
+        "email": "adam@example.test",
+        "role": "Team member",
+        "color": "blue",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-15",
+        "name": "Tess van Leeuwen",
+        "email": "tess@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": [
+          "2026-11-18"
+        ]
+      }
+    ],
+    "weeks": [
+      {
+        "start": "2026-11-16",
+        "budgets": [
+          32,
+          32,
+          34,
+          36,
+          44,
+          48,
+          40
+        ],
+        "shifts": [
+          {
+            "id": "sample-0-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-16",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-0-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-16",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-0-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-16",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-0-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-16",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-0-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-16",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-0-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-16",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-1-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-17",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-1-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-17",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-1-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-17",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-1-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-17",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-1-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-17",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-2-0",
+            "employeeId": "emp-4",
+            "date": "2026-11-18",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-2-2",
+            "employeeId": "emp-7",
+            "date": "2026-11-18",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-2-4",
+            "employeeId": "emp-8",
+            "date": "2026-11-18",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-3-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-19",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-3-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-19",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-3-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-19",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-3-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-19",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-3-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-19",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-20",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-4-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-20",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-4-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-20",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-4-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-20",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-20",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-20",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-6",
+            "employeeId": "emp-10",
+            "date": "2026-11-20",
+            "start": 660,
+            "end": 1050,
+            "breakMinutes": 30,
+            "breakStart": 840,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-5-2",
+            "employeeId": "emp-7",
+            "date": "2026-11-21",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-5-3",
+            "employeeId": "emp-9",
+            "date": "2026-11-21",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-5-4",
+            "employeeId": "emp-8",
+            "date": "2026-11-21",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-5-5",
+            "employeeId": "emp-5",
+            "date": "2026-11-21",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-5-6",
+            "employeeId": "emp-11",
+            "date": "2026-11-21",
+            "start": 660,
+            "end": 1050,
+            "breakMinutes": 30,
+            "breakStart": 840,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-6-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-6-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-6-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-22",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-22",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-22",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-7",
+            "employeeId": "emp-13",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          }
+        ]
+      }
+    ],
+    "audit": [
+      {
+        "id": "initial",
+        "at": "2026-11-15T11:00:00Z",
+        "message": "Fictional workspace created. Sample roster is manually authored."
+      }
+    ]
+  },
+  "high-demand": {
+    "schemaVersion": 2,
+    "revision": 0,
+    "scenario": "high-demand",
+    "restaurant": {
+      "id": "restaurant-demo",
+      "name": "Hawaiian Poké Bowl",
+      "location": "Utrecht, Netherlands",
+      "timezone": "Europe/Amsterdam",
+      "open": 600,
+      "close": 1380,
+      "skillRules": {
+        "catalog": [
+          {
+            "id": "open",
+            "name": "Can open"
+          },
+          {
+            "id": "close",
+            "name": "Can close independently"
+          },
+          {
+            "id": "train",
+            "name": "Can train / supervise"
+          },
+          {
+            "id": "service",
+            "name": "General service"
+          }
+        ],
+        "requirements": [
+          {
+            "id": "opening",
+            "skillId": "open",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 600,
+            "end": 660,
+            "minimum": 1
+          },
+          {
+            "id": "closing",
+            "skillId": "close",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 1290,
+            "end": 1380,
+            "minimum": 1
+          },
+          {
+            "id": "service",
+            "skillId": "service",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 660,
+            "end": 1290,
+            "minimum": 1
+          }
+        ],
+        "requiredByKind": {
+          "Opening": [
+            "service"
+          ],
+          "Midday": [
+            "service"
+          ],
+          "Closing": [
+            "service"
+          ]
+        },
+        "supervisionCapacity": 2
+      }
+    },
+    "employees": [
+      {
+        "id": "emp-1",
+        "name": "Nora de Vries",
+        "email": "nora@example.test",
+        "role": "Shift leader",
+        "color": "sage",
+        "preferredHours": 28,
+        "maxHours": 40,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-2",
+        "name": "Liam van Dijk",
+        "email": "liam@example.test",
+        "role": "Shift leader",
+        "color": "blue",
+        "preferredHours": 32,
+        "maxHours": 40,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-3",
+        "name": "Sofia Bakker",
+        "email": "sofia@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-4",
+        "name": "Daan Visser",
+        "email": "daan@example.test",
+        "role": "Team member",
+        "color": "lilac",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-5",
+        "name": "Emma Jansen",
+        "email": "emma@example.test",
+        "role": "Team member",
+        "color": "rose",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-6",
+        "name": "Noah Smit",
+        "email": "noah@example.test",
+        "role": "Team member",
+        "color": "sand",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-7",
+        "name": "Yara Meijer",
+        "email": "yara@example.test",
+        "role": "Team member",
+        "color": "blue",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": [
+          "2026-11-19",
+          "2026-11-20"
+        ]
+      },
+      {
+        "id": "emp-8",
+        "name": "Lucas Bos",
+        "email": "lucas@example.test",
+        "role": "Team member",
+        "color": "sage",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-9",
+        "name": "Mila Dekker",
+        "email": "mila@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 12,
+        "maxHours": 20,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-10",
+        "name": "Finn Mulder",
+        "email": "finn@example.test",
+        "role": "Team member",
+        "color": "lilac",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-11",
+        "name": "Zoë de Groot",
+        "email": "zoë@example.test",
+        "role": "Team member",
+        "color": "rose",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-12",
+        "name": "Sem Peters",
+        "email": "sem@example.test",
+        "role": "Team member",
+        "color": "sand",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-13",
+        "name": "Julia Hendriks",
+        "email": "julia@example.test",
+        "role": "Team member",
+        "color": "sage",
+        "preferredHours": 12,
+        "maxHours": 20,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-14",
+        "name": "Adam Vos",
+        "email": "adam@example.test",
+        "role": "Team member",
+        "color": "blue",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-15",
+        "name": "Tess van Leeuwen",
+        "email": "tess@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": [
+          "2026-11-18"
+        ]
+      }
+    ],
+    "weeks": [
+      {
+        "start": "2026-11-16",
+        "budgets": [
+          40,
+          40,
+          42,
+          44,
+          52,
+          56,
+          48
+        ],
+        "shifts": [
+          {
+            "id": "sample-0-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-16",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-0-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-16",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-0-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-16",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-0-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-16",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-0-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-16",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-0-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-16",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-1-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-17",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-1-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-17",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-1-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-17",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-1-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-17",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-1-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-17",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-2-0",
+            "employeeId": "emp-4",
+            "date": "2026-11-18",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-2-2",
+            "employeeId": "emp-7",
+            "date": "2026-11-18",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-2-4",
+            "employeeId": "emp-8",
+            "date": "2026-11-18",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-3-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-19",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-3-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-19",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-3-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-19",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-3-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-19",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-3-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-19",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-20",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-4-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-20",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-4-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-20",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-4-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-20",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-20",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-20",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-6",
+            "employeeId": "emp-10",
+            "date": "2026-11-20",
+            "start": 660,
+            "end": 1050,
+            "breakMinutes": 30,
+            "breakStart": 840,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-5-2",
+            "employeeId": "emp-7",
+            "date": "2026-11-21",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-5-3",
+            "employeeId": "emp-9",
+            "date": "2026-11-21",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-5-4",
+            "employeeId": "emp-8",
+            "date": "2026-11-21",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-5-5",
+            "employeeId": "emp-5",
+            "date": "2026-11-21",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-5-6",
+            "employeeId": "emp-11",
+            "date": "2026-11-21",
+            "start": 660,
+            "end": 1050,
+            "breakMinutes": 30,
+            "breakStart": 840,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-6-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-6-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-6-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-22",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-22",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-22",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-7",
+            "employeeId": "emp-13",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          }
+        ]
+      }
+    ],
+    "audit": [
+      {
+        "id": "initial",
+        "at": "2026-11-15T11:00:00Z",
+        "message": "Fictional workspace created. Sample roster is manually authored."
+      }
+    ]
+  },
+  "shortage": {
+    "schemaVersion": 2,
+    "revision": 0,
+    "scenario": "shortage",
+    "restaurant": {
+      "id": "restaurant-demo",
+      "name": "Hawaiian Poké Bowl",
+      "location": "Utrecht, Netherlands",
+      "timezone": "Europe/Amsterdam",
+      "open": 600,
+      "close": 1380,
+      "skillRules": {
+        "catalog": [
+          {
+            "id": "open",
+            "name": "Can open"
+          },
+          {
+            "id": "close",
+            "name": "Can close independently"
+          },
+          {
+            "id": "train",
+            "name": "Can train / supervise"
+          },
+          {
+            "id": "service",
+            "name": "General service"
+          }
+        ],
+        "requirements": [
+          {
+            "id": "opening",
+            "skillId": "open",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 600,
+            "end": 660,
+            "minimum": 1
+          },
+          {
+            "id": "closing",
+            "skillId": "close",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 1290,
+            "end": 1380,
+            "minimum": 1
+          },
+          {
+            "id": "service",
+            "skillId": "service",
+            "days": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "start": 660,
+            "end": 1290,
+            "minimum": 1
+          }
+        ],
+        "requiredByKind": {
+          "Opening": [
+            "service"
+          ],
+          "Midday": [
+            "service"
+          ],
+          "Closing": [
+            "service"
+          ]
+        },
+        "supervisionCapacity": 2
+      }
+    },
+    "employees": [
+      {
+        "id": "emp-1",
+        "name": "Nora de Vries",
+        "email": "nora@example.test",
+        "role": "Shift leader",
+        "color": "sage",
+        "preferredHours": 28,
+        "maxHours": 40,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-2",
+        "name": "Liam van Dijk",
+        "email": "liam@example.test",
+        "role": "Shift leader",
+        "color": "blue",
+        "preferredHours": 32,
+        "maxHours": 40,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-3",
+        "name": "Sofia Bakker",
+        "email": "sofia@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-4",
+        "name": "Daan Visser",
+        "email": "daan@example.test",
+        "role": "Team member",
+        "color": "lilac",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-5",
+        "name": "Emma Jansen",
+        "email": "emma@example.test",
+        "role": "Team member",
+        "color": "rose",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-6",
+        "name": "Noah Smit",
+        "email": "noah@example.test",
+        "role": "Team member",
+        "color": "sand",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          null,
+          null,
+          {
+            "start": 960,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-7",
+        "name": "Yara Meijer",
+        "email": "yara@example.test",
+        "role": "Team member",
+        "color": "blue",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": [
+          "2026-11-19",
+          "2026-11-20"
+        ]
+      },
+      {
+        "id": "emp-8",
+        "name": "Lucas Bos",
+        "email": "lucas@example.test",
+        "role": "Team member",
+        "color": "sage",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-9",
+        "name": "Mila Dekker",
+        "email": "mila@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 12,
+        "maxHours": 20,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-10",
+        "name": "Finn Mulder",
+        "email": "finn@example.test",
+        "role": "Team member",
+        "color": "lilac",
+        "preferredHours": 24,
+        "maxHours": 32,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "train",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-11",
+        "name": "Zoë de Groot",
+        "email": "zoë@example.test",
+        "role": "Team member",
+        "color": "rose",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          {
+            "start": 1020,
+            "end": 1380
+          },
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-12",
+        "name": "Sem Peters",
+        "email": "sem@example.test",
+        "role": "Team member",
+        "color": "sand",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "close",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          {
+            "start": 960,
+            "end": 1380
+          },
+          null,
+          null,
+          {
+            "start": 960,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-13",
+        "name": "Julia Hendriks",
+        "email": "julia@example.test",
+        "role": "Team member",
+        "color": "sage",
+        "preferredHours": 12,
+        "maxHours": 20,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          },
+          {
+            "skillId": "open",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": null,
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          {
+            "start": 600,
+            "end": 1020
+          },
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1020
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-14",
+        "name": "Adam Vos",
+        "email": "adam@example.test",
+        "role": "Team member",
+        "color": "blue",
+        "preferredHours": 16,
+        "maxHours": 24,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": []
+      },
+      {
+        "id": "emp-15",
+        "name": "Tess van Leeuwen",
+        "email": "tess@example.test",
+        "role": "Team member",
+        "color": "peach",
+        "preferredHours": 20,
+        "maxHours": 28,
+        "competencies": [
+          {
+            "skillId": "service",
+            "verifiedBy": "demo-manager-jamie",
+            "verifiedAt": "2026-11-15T11:00:00Z"
+          }
+        ],
+        "supervisionSkillId": "train",
+        "skillsReviewedAt": "2026-11-15T11:00:00Z",
+        "minRestHours": 11,
+        "maxShiftHours": 9,
+        "eligible": [
+          "Opening",
+          "Midday",
+          "Closing"
+        ],
+        "availability": [
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          {
+            "start": 600,
+            "end": 1380
+          },
+          null,
+          null,
+          {
+            "start": 600,
+            "end": 1380
+          }
+        ],
+        "absentDates": [
+          "2026-11-18"
+        ]
+      }
+    ],
+    "weeks": [
+      {
+        "start": "2026-11-16",
+        "budgets": [
+          32,
+          32,
+          34,
+          36,
+          44,
+          48,
+          40
+        ],
+        "shifts": [
+          {
+            "id": "sample-0-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-16",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-0-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-16",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-0-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-16",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-0-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-16",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-0-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-16",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-0-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-16",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-1-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-17",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-1-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-17",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-1-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-17",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-1-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-17",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-1-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-17",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-2-0",
+            "employeeId": "emp-4",
+            "date": "2026-11-18",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-2-2",
+            "employeeId": "emp-7",
+            "date": "2026-11-18",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-2-4",
+            "employeeId": "emp-8",
+            "date": "2026-11-18",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-3-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-19",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-3-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-19",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-3-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-19",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-3-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-19",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-3-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-19",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-4-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-20",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-4-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-20",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-4-2",
+            "employeeId": "emp-4",
+            "date": "2026-11-20",
+            "start": 720,
+            "end": 1080,
+            "breakMinutes": 30,
+            "breakStart": 900,
+            "kind": "Midday"
+          },
+          {
+            "id": "sample-4-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-20",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-0",
+            "employeeId": "emp-1",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-6-1",
+            "employeeId": "emp-3",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 960,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          },
+          {
+            "id": "sample-6-3",
+            "employeeId": "emp-6",
+            "date": "2026-11-22",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-4",
+            "employeeId": "emp-5",
+            "date": "2026-11-22",
+            "start": 1020,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1200,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-5",
+            "employeeId": "emp-2",
+            "date": "2026-11-22",
+            "start": 990,
+            "end": 1380,
+            "breakMinutes": 30,
+            "breakStart": 1170,
+            "kind": "Closing"
+          },
+          {
+            "id": "sample-6-7",
+            "employeeId": "emp-13",
+            "date": "2026-11-22",
+            "start": 600,
+            "end": 990,
+            "breakMinutes": 30,
+            "breakStart": 780,
+            "kind": "Opening"
+          }
+        ]
+      }
+    ],
+    "audit": [
+      {
+        "id": "initial",
+        "at": "2026-11-15T11:00:00Z",
+        "message": "Fictional workspace created. Sample roster is manually authored."
+      }
+    ]
+  }
+}

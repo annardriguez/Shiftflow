@@ -1,0 +1,17 @@
+[project]
+name = "shiftflow-engine"
+version = "0.2.0"
+description = "Local fictional-data workforce scheduling engine"
+requires-python = ">=3.12,<3.13"
+dependencies = ["fastapi==0.163.1", "uvicorn==0.54.0", "ortools==9.15.6755", "pydantic==2.14.3"]
+
+[dependency-groups]
+dev = ["pytest==9.2.0", "httpx==0.28.1", "ruff==0.17.5"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
