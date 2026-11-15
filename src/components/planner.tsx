@@ -2,7 +2,27 @@
 import { workspaceFetch } from "@/lib/workspace-fetch";
 import { useEffect, useState } from "react";
 import { useApp } from "./provider";
-import { Badge, ErrorBox } from "./ui";
+import {
+  Badge,
+  Callout,
+  ErrorBox,
+  LoadGuard,
+  PageTitle,
+  StatusPill,
+  WeekPicker,
+} from "./ui";
+import {
+  Sparkles,
+  ShieldCheck,
+  Cpu,
+  LoaderCircle,
+  Check,
+  Save,
+  Download,
+  Plus,
+} from "lucide-react";
+import { longDate, shortDate, relativeTime } from "@/lib/format";
+import type { Alternative } from "@/lib/planning-types";
 import {
   dateAt,
   DAYS,
@@ -25,7 +45,68 @@ async function request(body: unknown) {
   if (!r.ok) throw new Error(value.error);
   return value;
 }
-export function Planner({ onClose }: { onClose: () => void }) {
+/** Plain-language strategy descriptions (weights in docs/optimization-model.md). */
+const STRATEGY: Record<string, { name: string; why: string }> = {
+  "budget-first": {
+    name: "Stay on budget",
+    why: "Keeps paid hours close to your labour targets. May leave more half-hours below the ideal headcount.",
+  },
+  balanced: {
+    name: "Balanced",
+    why: "Weighs staffing coverage, labour targets and people’s preferred hours together.",
+  },
+  "coverage-first": {
+    name: "Best coverage",
+    why: "Fills as many half-hours as possible, even if that goes over the labour target.",
+  },
+};
+const strategyName = (s: string) => STRATEGY[s]?.name ?? s.replaceAll("-", " ");
+function statusText(a: Alternative) {
+  if (!a.metrics || !a.validation?.valid) return { label: "No valid roster", tone: "negative" as const };
+  if (a.status === "OPTIMAL") return { label: "Best possible", tone: "positive" as const };
+  return { label: "Valid · time limit reached", tone: "accent" as const };
+}
+function bestOf(run: PlanningRun, pick: (a: Alternative) => number | null | undefined, high: boolean) {
+  const values = run.alternatives
+    .filter((a) => a.metrics && a.validation?.valid)
+    .map((a) => pick(a))
+    .filter((v): v is number => typeof v === "number");
+  if (values.length < 2 || values.every((v) => v === values[0])) return null;
+  return high ? Math.max(...values) : Math.min(...values);
+}
+
+export function Intelligence() {
+  return (
+    <LoadGuard>
+      <PageTitle
+        title="Schedule Intelligence"
+        description="Generate a complete week that respects every availability, skill, supervision and working-time rule, then compare three approaches side by side."
+      >
+        <WeekPicker />
+      </PageTitle>
+      <div className="how-it-works">
+        <div>
+          <b>1</b>
+          <h3>Rules are never traded away</h3>
+          <p>Availability, time off, skills, closing cover, trainee supervision, rest, breaks and hour limits must all hold. A roster that breaks one is never offered.</p>
+        </div>
+        <div>
+          <b>2</b>
+          <h3>Three priorities, compared</h3>
+          <p>The optimiser searches for the best roster under three different priorities, so you can see the trade-off between coverage and labour cost.</p>
+        </div>
+        <div>
+          <b>3</b>
+          <h3>Checked twice, saved by you</h3>
+          <p>Every suggestion is re-checked by an independent validator. Nothing replaces your roster until you review and save it.</p>
+        </div>
+      </div>
+      <Planner />
+    </LoadGuard>
+  );
+}
+
+export function Planner({ onClose }: { onClose?: () => void }) {
   const { data, week, reload, notify } = useApp();
   const [runs, setRuns] = useState<PlanningRun[]>([]),
     [run, setRun] = useState<PlanningRun | null>(null),
@@ -70,7 +151,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
     setError("");
   }
   async function generate() {
-    setBusy("Generating three alternatives… This can take up to 45 seconds.");
+    setBusy("Building three rosters and checking each one… this can take up to 45 seconds.");
     setError("");
     try {
       const r: PlanningRun = await request({
@@ -95,8 +176,8 @@ export function Planner({ onClose }: { onClose: () => void }) {
     if (!run) return;
     setBusy(
       save
-        ? "Revalidating and saving the complete draft…"
-        : "Checking all mandatory rules…",
+        ? "Checking again and saving your roster…"
+        : "Checking every rule…",
     );
     setError("");
     try {
@@ -110,7 +191,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
         setSaved(true);
         setDirty(false);
         reload();
-        notify("Weekly draft saved locally. Strobbo is not connected.");
+        notify("Roster saved for this week");
       } else setReport(result);
     } catch (e) {
       setError((e as Error).message);
@@ -129,145 +210,187 @@ export function Planner({ onClose }: { onClose: () => void }) {
     ["FEASIBLE", "OPTIMAL"].includes(selected.status) &&
     !!selected.validation?.valid;
   return (
-    <section className="panel planner" aria-label="Weekly roster planner">
+    <section className="panel planner" aria-label="Generate my week">
       <div className="planner-heading">
         <div>
-          <div className="eyebrow">SMART SCHEDULING · FICTIONAL DATA</div>
-          <h2>Find your week’s best fit.</h2>
+          <h2>
+            <Sparkles size={17} style={{ verticalAlign: -3, color: "var(--accent)" }} /> Generate my week
+          </h2>
           <p>
-            {weekLabel(week)} · Suggestions stay separate until you save a
-            draft.
+            {weekLabel(week)} · uses this week’s labour targets and your team’s verified skills and availability.
           </p>
         </div>
-        <button
-          className="btn"
-          disabled={!!busy}
-          onClick={() => {
-            if (!dirty || confirm("Discard unsaved preview edits?")) onClose();
-          }}
-        >
-          Close planner
-        </button>
+        {onClose && (
+          <button
+            className="btn"
+            disabled={!!busy}
+            onClick={() => {
+              if (!dirty || confirm("Discard unsaved preview edits?")) onClose();
+            }}
+          >
+            Close
+          </button>
+        )}
       </div>
       <div className="planner-controls">
         <label>
-          Search time per strategy{" "}
+          How long to search
           <select
             value={seconds}
             disabled={!!busy}
             onChange={(e) => setSeconds(Number(e.target.value))}
           >
-            <option value={4}>4 seconds · quick</option>
-            <option value={8}>8 seconds · standard</option>
-            <option value={15}>15 seconds · extended</option>
+            <option value={4}>Quick · about 15 s</option>
+            <option value={8}>Standard · about 30 s</option>
+            <option value={15}>Thorough · about 45 s</option>
           </select>
         </label>
         <button
           className="btn primary"
           disabled={!!busy || dirty}
           onClick={generate}
+          aria-busy={!!busy}
         >
-          Generate 3 alternatives
+          {busy ? <LoaderCircle size={15} className="spin" /> : <Sparkles size={15} />}
+          Generate 3 options
         </button>
-        <label>
-          Recent comparisons
-          <select
-            disabled={!!busy}
-            value={run?.id ?? ""}
-            onChange={(e) => {
-              const r = runs.find((r) => r.id === e.target.value);
-              if (r)
-                choose(
-                  r,
-                  r.alternatives.find((a) => a.validation?.valid)?.strategy ??
-                    r.alternatives[0].strategy,
-                );
-            }}
-          >
-            <option value="">Choose a saved run</option>
-            {runs
-              .filter((r) => r.week === week)
-              .map((r) => (
-                <option key={r.id} value={r.id}>
-                  {new Date(r.createdAt).toLocaleString()} · revision{" "}
-                  {r.revision}
-                </option>
-              ))}
-          </select>
-        </label>
+        {runs.filter((r) => r.week === week).length > 0 && (
+          <label>
+            Earlier results
+            <select
+              disabled={!!busy}
+              value={run?.id ?? ""}
+              onChange={(e) => {
+                const r = runs.find((r) => r.id === e.target.value);
+                if (r)
+                  choose(
+                    r,
+                    r.alternatives.find((a) => a.validation?.valid)?.strategy ??
+                      r.alternatives[0].strategy,
+                  );
+              }}
+            >
+              <option value="">Choose an earlier run</option>
+              {runs
+                .filter((r) => r.week === week)
+                .map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {relativeTime(r.createdAt)} · roster v{r.revision}
+                  </option>
+                ))}
+            </select>
+          </label>
+        )}
       </div>
-      <p className="form-hint">
-        Uses this week’s saved labour targets and manager-verified skills.
-        Availability, breaks, rest, hours and supervision are mandatory. Demo
-        policy: at most 5 days/week, 6 consecutive days; no minimum weekly
-        entitlement. Target coverage and hour preferences are ranking goals.
-        Search is bounded; alternatives may be identical.
-      </p>
+      <div className="engine-strip">
+        <span><Cpu size={12} /> Constraint optimiser (OR-Tools CP-SAT)</span>
+        <span><ShieldCheck size={12} /> Independent rule validator</span>
+        <span>Max 5 working days per person, 6 in a row</span>
+      </div>
+      {!run && !busy && (
+        <div className="empty-state" style={{ border: "1px dashed var(--line-2)", borderRadius: 12 }}>
+          <div className="empty-icon">
+            <Sparkles size={20} />
+          </div>
+          <h3>No options generated for this week yet</h3>
+          <p>Generate three complete rosters and compare them. Your current roster stays as it is until you save one.</p>
+        </div>
+      )}
       {busy && (
-        <p role="status" className="info-box">
-          {busy}
-        </p>
+        <Callout tone="accent" icon={<LoaderCircle size={16} className="spin" />}>
+          <span role="status">{busy}</span>
+        </Callout>
       )}
       <ErrorBox error={error} />
       {run && (
         <>
           <div className="alternative-grid">
-            {run.alternatives.map((a) => (
-              <button
-                disabled={!!busy}
-                key={a.strategy}
-                aria-pressed={strategy === a.strategy}
-                className={`alternative-card ${strategy === a.strategy ? "selected" : ""}`}
-                onClick={() => choose(run, a.strategy)}
-              >
-                <h3>{a.strategy.replaceAll("-", " ")}</h3>
-                <Badge tone={a.validation?.valid ? "sage" : "peach"}>
-                  {a.status}
-                </Badge>
-                {a.metrics ? (
-                  <>
-                    <strong>
-                      {a.metrics.total_paid_hours}h <small>paid</small>
-                    </strong>
-                    <span>
-                      {a.metrics.target_coverage_percent?.toFixed(1) ?? "—"}%
-                      target coverage
-                    </span>
-                    <span>
-                      {a.metrics.budget_deviation_hours}h vs total labour target
-                    </span>
-                    <span>
-                      {a.metrics.uncovered_person_hours} person-hours below
-                      demand
-                    </span>
-                    <span>
-                      Fairness score {a.metrics.fairness_score.toFixed(2)}
-                    </span>
-                    <span>
-                      {a.metrics.baseline_assignment_changes} assignment changes
-                      vs saved roster
-                    </span>
-                  </>
-                ) : (
-                  <span>No usable roster found within this search.</span>
-                )}
-              </button>
-            ))}
+            {run.alternatives.map((a) => {
+              const st = statusText(a),
+                m = a.metrics,
+                bestCov = bestOf(run, (x) => x.metrics?.target_coverage_percent, true),
+                bestDev = bestOf(run, (x) => (x.metrics ? Math.abs(x.metrics.budget_deviation_hours) : null), false),
+                bestGap = bestOf(run, (x) => x.metrics?.uncovered_person_hours, false),
+                bestFair = bestOf(run, (x) => x.metrics?.fairness_score, true),
+                bestStable = bestOf(run, (x) => x.metrics?.baseline_assignment_changes, false);
+              return (
+                <button
+                  disabled={!!busy}
+                  key={a.strategy}
+                  aria-pressed={strategy === a.strategy}
+                  className={`alternative-card ${strategy === a.strategy ? "selected" : ""}`}
+                  onClick={() => choose(run, a.strategy)}
+                >
+                  <div className="alt-head">
+                    <h3>{strategyName(a.strategy)}</h3>
+                    <StatusPill tone={st.tone}>{st.label}</StatusPill>
+                  </div>
+                  <p className="alt-why">{STRATEGY[a.strategy]?.why}</p>
+                  {m && a.validation?.valid ? (
+                    <div className="alt-metrics">
+                      <div>
+                        <span>Staffing target covered</span>
+                        <b className={m.target_coverage_percent === bestCov ? "best" : ""}>
+                          {m.target_coverage_percent?.toFixed(1) ?? "–"}%
+                        </b>
+                      </div>
+                      <div>
+                        <span>Paid hours</span>
+                        <b>{m.total_paid_hours}h</b>
+                      </div>
+                      <div>
+                        <span>vs labour target</span>
+                        <b className={Math.abs(m.budget_deviation_hours) === bestDev ? "best" : ""}>
+                          {m.budget_deviation_hours > 0 ? "+" : ""}
+                          {m.budget_deviation_hours}h
+                        </b>
+                      </div>
+                      <div>
+                        <span>Understaffed person-hours</span>
+                        <b className={m.uncovered_person_hours === bestGap ? "best" : ""}>{m.uncovered_person_hours}h</b>
+                      </div>
+                      <div>
+                        <span title="Descriptive 0–100 score of how evenly preferred hours are met. Not a measure of satisfaction.">Hour fairness</span>
+                        <b className={m.fairness_score === bestFair ? "best" : ""}>{m.fairness_score.toFixed(0)}/100</b>
+                      </div>
+                      <div>
+                        <span>Shifts changed vs saved roster</span>
+                        <b className={m.baseline_assignment_changes === bestStable ? "best" : ""}>{m.baseline_assignment_changes}</b>
+                      </div>
+                    </div>
+                  ) : (
+                    <span className="form-hint">No roster passing every rule was found in this search.</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
+          {run.alternatives.filter((a) => a.validation?.valid).length > 1 &&
+            new Set(
+              run.alternatives
+                .filter((a) => a.validation?.valid)
+                .map((a) => JSON.stringify([...a.assignments].map((x) => [x.employee_id, x.day, x.start, x.end]).sort())),
+            ).size === 1 && (
+              <Callout tone="neutral" title="All three priorities found the same roster">
+                With this team’s availability and rules there was little room to trade coverage against cost. A
+                longer search may find differences.
+              </Callout>
+            )}
           {selected && (
             <>
-              <div className="info-box">
-                {selected.status === "OPTIMAL"
-                  ? "Optimal for this finite candidate model."
-                  : "A bounded search result; global optimality is not established."}{" "}
-                Solver phase: {selected.solver_status}.{" "}
-                {selected.metadata.used_feasibility_incumbent &&
-                  "Uses a validated feasibility incumbent."}{" "}
-                Generated metrics above describe the original suggestion at
-                workspace revision {run.revision}.{" "}
-                {dirty &&
-                  "Your preview has edits; validate again before saving."}
-              </div>
+              {selected.metrics && selected.validation?.valid && (
+                <Callout tone="positive" title={`${strategyName(selected.strategy)}: what this roster does`}>
+                  Covers {selected.metrics.target_coverage_percent?.toFixed(0) ?? "–"}% of your half-hourly staffing
+                  targets using {selected.metrics.total_paid_hours} paid hours (
+                  {selected.metrics.budget_deviation_hours > 0 ? "+" : ""}
+                  {selected.metrics.budget_deviation_hours}h against the labour target). Every availability, skill,
+                  supervision, rest and working-hours rule passes.{" "}
+                  {selected.status === "OPTIMAL"
+                    ? "No better roster exists for this priority under these rules."
+                    : "The search stopped at its time limit, so a slightly better roster may exist."}
+                  {dirty && " You’ve edited it since, so check it again before saving."}
+                </Callout>
+              )}
               {selected.metrics && (
                 <details>
                   <summary>
@@ -277,16 +400,16 @@ export function Planner({ onClose }: { onClose: () => void }) {
                     <table className="team-table">
                       <thead>
                         <tr>
-                          <th>TIME</th>
-                          <th>PEOPLE / TARGET</th>
-                          <th>REQUIRED SKILLS · QUALIFIED / REQUIRED</th>
+                          <th>Time</th>
+                          <th>People / target</th>
+                          <th>Required skills · qualified / needed</th>
                         </tr>
                       </thead>
                       <tbody>
                         {selected.metrics.coverage.map((c, i) => (
                           <tr key={i}>
                             <td>
-                              {c.day} {time(c.minute)}
+                              {shortDate(c.day)} {time(c.minute)}
                             </td>
                             <td>
                               {c.actual} / {c.target}
@@ -309,7 +432,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
               {selected.warnings.length > 0 && (
                 <details>
                   <summary>
-                    Search warnings ({selected.warnings.length})
+                    Optimiser notes ({selected.warnings.length})
                   </summary>
                   {selected.warnings.map((w, i) => (
                     <p key={i}>{w}</p>
@@ -319,7 +442,8 @@ export function Planner({ onClose }: { onClose: () => void }) {
               {!usable &&
                 selected.diagnostics.map((d, i) => (
                   <p key={i} className="error-box">
-                    {d.day} {d.message}
+                    {d.day ? `${shortDate(d.day)}: ` : ""}
+                    {d.message}
                   </p>
                 ))}
               {usable && (
@@ -328,9 +452,9 @@ export function Planner({ onClose }: { onClose: () => void }) {
                     <div>
                       <h3>
                         {saved
-                          ? "Draft saved locally"
+                          ? "Saved as this week’s roster"
                           : dirty
-                            ? "Edited preview"
+                            ? "Your edited version"
                             : "Suggested roster"}
                       </h3>
                       <p>
@@ -338,8 +462,8 @@ export function Planner({ onClose }: { onClose: () => void }) {
                         {shifts.reduce((n, s) => n + paidHours(s), 0)} paid
                         hours ·{" "}
                         {stale && !saved
-                          ? "Workspace has changed. Generate again."
-                          : "Not synchronized to Strobbo."}
+                          ? "The roster changed since this was generated. Generate again."
+                          : "Not saved until you choose Save."}
                       </p>
                     </div>
                     <div className="flex-row">
@@ -359,14 +483,14 @@ export function Planner({ onClose }: { onClose: () => void }) {
                           })
                         }
                       >
-                        Add shift
+                        <Plus size={14} /> Add shift
                       </button>
                       <button
                         className="btn"
                         disabled={!!busy || stale}
                         onClick={() => validate()}
                       >
-                        Validate preview
+                        <ShieldCheck size={14} /> Check rules
                       </button>
                       <button
                         className="btn primary"
@@ -379,7 +503,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
                         }
                         onClick={() => validate(true)}
                       >
-                        Save weekly draft
+                        <Save size={14} /> Save as roster
                       </button>
                       <button
                         className="btn"
@@ -415,7 +539,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
                           )
                         }
                       >
-                        Export preview CSV
+                        <Download size={14} /> CSV
                       </button>
                     </div>
                   </div>
@@ -425,27 +549,26 @@ export function Planner({ onClose }: { onClose: () => void }) {
                       role="status"
                     >
                       {stale && !saved
-                        ? "This report applies to the original snapshot. The workspace changed; generate again before saving or exporting."
+                        ? "This check was made before the roster changed. Generate again before saving or exporting."
                         : report.valid
-                          ? `All mandatory checks passed. ${report.supervision_pairings.length} interval supervision pairings verified.`
-                          : `${report.issues.length} mandatory checks failed.`}
+                          ? `Every rule passes.${report.supervision_pairings.length ? ` Trainees have a supervisor in all ${report.supervision_pairings.length} half-hours they work.` : ""}`
+                          : `${report.issues.length} rule${report.issues.length === 1 ? "" : "s"} broken. Fix and check again.`}
                       {report.issues.slice(0, 30).map((i, n) => (
                         <p key={n}>
-                          {i.day} {i.message}
+                          {i.day ? `${shortDate(i.day)}: ` : ""}
+                          {i.message}
                         </p>
                       ))}
                       {report.issues.length > 30 && (
                         <p>
-                          Showing the first 30 issues. Repair and validate
-                          again.
+                          Showing the first 30. Fix these and check again.
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p className="info-box">
-                      Preview changed. Validate the complete roster to check
-                      skills, trainee supervision and working-time rules.
-                    </p>
+                    <Callout tone="caution">
+                      You’ve changed the suggestion. Check the rules again before saving.
+                    </Callout>
                   )}
                   {editing && (
                     <form
@@ -459,7 +582,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
                         setEditing(null);
                       }}
                     >
-                      <h3>Edit preview shift</h3>
+                      <h3>Edit shift in suggestion</h3>
                       <div className="planner-controls">
                         <label>
                           Employee
@@ -569,7 +692,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
                       </div>
                       <div className="flex-row">
                         <button className="btn primary">
-                          Apply to preview
+                          Apply
                         </button>
                         <button
                           className="btn"
@@ -585,11 +708,11 @@ export function Planner({ onClose }: { onClose: () => void }) {
                     <table className="team-table">
                       <thead>
                         <tr>
-                          <th>EMPLOYEE / SKILLS</th>
-                          <th>DATE</th>
-                          <th>SHIFT</th>
-                          <th>BREAK</th>
-                          <th>ACTIONS</th>
+                          <th>Person</th>
+                          <th>Day</th>
+                          <th>Shift</th>
+                          <th>Break</th>
+                          <th />
                         </tr>
                       </thead>
                       <tbody>
@@ -608,7 +731,7 @@ export function Planner({ onClose }: { onClose: () => void }) {
                                   {e?.name}
                                   {e && <SkillBadges employee={e} compact />}
                                 </td>
-                                <td>{s.date}</td>
+                                <td>{shortDate(s.date)}</td>
                                 <td>
                                   {time(s.start)}–{time(s.end)} · {s.kind}
                                 </td>
@@ -619,14 +742,14 @@ export function Planner({ onClose }: { onClose: () => void }) {
                                 </td>
                                 <td>
                                   <button
-                                    className="btn"
+                                    className="btn small"
                                     disabled={!!busy || saved}
                                     onClick={() => setEditing(s)}
                                   >
                                     Edit
                                   </button>{" "}
                                   <button
-                                    className="btn"
+                                    className="btn small ghost"
                                     disabled={!!busy || saved}
                                     onClick={() =>
                                       change(
@@ -645,10 +768,10 @@ export function Planner({ onClose }: { onClose: () => void }) {
                   </div>
                   {report?.valid && (
                     <details>
-                      <summary>Verified supervision pairings</summary>
+                      <summary>Who supervises whom</summary>
                       {report.supervision_pairings.map((p, i) => (
                         <p key={i}>
-                          {p.day} {time(p.minute)} ·{" "}
+                          {shortDate(p.day)} {time(p.minute)} ·{" "}
                           {
                             workspace.employees.find(
                               (e) => e.id === p.trainee_id,

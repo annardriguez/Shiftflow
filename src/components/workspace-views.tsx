@@ -1,26 +1,25 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import {
   Plus,
   Search,
-  ArrowUpRight,
-  ArrowRight,
   Check,
-  Users,
-  Clock3,
   CalendarDays,
-  ArrowLeftRight,
   Save,
-  AlertTriangle,
-  Sprout,
-  FlaskConical,
   RotateCcw,
+  KeyRound,
+  ShieldCheck,
+  HelpCircle,
+  Pencil,
+  Unplug,
+  FlaskConical,
 } from "lucide-react";
 import { useApp } from "./provider";
 import {
   Avatar,
   Badge,
+  Callout,
+  EmptyState,
   ErrorBox,
   LoadGuard,
   Modal,
@@ -38,9 +37,15 @@ import {
   metrics,
   time,
 } from "@/lib/schedule";
+import { qualified } from "@/lib/skills";
+import { dayOfMonth, hours, plural, relativeTime, shortDate } from "@/lib/format";
 import type { Employee, Scenario, Window } from "@/lib/types";
 import { SkillBadges, SkillProfileDialog, SkillRulesPanel } from "./skills";
 import { LabourChart } from "./dashboard";
+
+/* =====================================================================
+   Team
+   ===================================================================== */
 
 export function Team() {
   return (
@@ -49,147 +54,211 @@ export function Team() {
     </LoadGuard>
   );
 }
+
+function Cap({ e, skill, label }: { e: Employee; skill: string; label: string }) {
+  if (!e.skillsReviewedAt)
+    return (
+      <span className="cap unknown" title={`${label}: unknown, skills not verified`}>
+        ?
+      </span>
+    );
+  const yes = qualified(e, skill);
+  return (
+    <span
+      className={`cap ${yes ? "yes" : ""} ${skill === "close" ? "close" : ""}`}
+      title={`${label}: ${yes ? "verified" : "no"}`}
+      aria-label={`${label}: ${yes ? "yes" : "no"}`}
+    >
+      {yes ? (skill === "close" ? <KeyRound size={12} /> : <Check size={12} strokeWidth={3} />) : "–"}
+    </span>
+  );
+}
+
 function TeamContent() {
   const { data, week } = useApp(),
     [query, setQuery] = useState(""),
+    [filter, setFilter] = useState<"all" | "close" | "open" | "train" | "unverified">("all"),
     [editor, setEditor] = useState<Employee | "new" | null>(null),
     [skillEditor, setSkillEditor] = useState<Employee | null>(null);
   if (!data) return null;
-  const roster = getWeek(data, week),
-    people = data.employees.filter((e) =>
-      (e.name + " " + e.role).toLowerCase().includes(query.toLowerCase()),
-    );
+  const roster = getWeek(data, week);
+  const people = data.employees.filter(
+    (e) =>
+      (e.name + " " + e.role).toLowerCase().includes(query.toLowerCase()) &&
+      (filter === "all" ||
+        (filter === "unverified" ? !e.skillsReviewedAt : qualified(e, filter))),
+  );
+  const closers = data.employees.filter((e) => qualified(e, "close")).length,
+    openers = data.employees.filter((e) => qualified(e, "open")).length,
+    supervisors = data.employees.filter((e) => qualified(e, "train") && !e.supervisionSkillId).length,
+    trainees = data.employees.filter((e) => e.supervisionSkillId).length,
+    unverified = data.employees.filter((e) => !e.skillsReviewedAt).length;
   return (
     <>
-      <PageTitle
-        eyebrow="THE PEOPLE WHO MAKE IT HAPPEN"
-        title="Great teams. Great things."
-        description="A little understanding goes a long way. Get to know your team’s rhythm."
-      >
+      <PageTitle title="Team" description="Who can do what. Verified skills decide who can open, close and cover each shift.">
         <button className="btn primary" onClick={() => setEditor("new")}>
-          <Plus size={16} />
-          Add team member
+          <Plus size={15} /> Add team member
         </button>
       </PageTitle>
-      <div className="section-strip">
-        <span>
-          <Users size={17} />
-          <strong>{data.employees.length}</strong> team members
-        </span>
-        <Badge>Fictional workforce</Badge>
-        <div className="search-field">
-          <Search size={16} />
-          <input
-            aria-label="Search team"
-            placeholder="Search the team…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+      <div className="stat-row">
+        <div className="stat">
+          <span className="stat-label">
+            <KeyRound size={13} /> Can close
+          </span>
+          <span className="stat-value">
+            {closers}
+            <small>of {data.employees.length}</small>
+          </span>
+          <span className="stat-note">Needed on every closing shift</span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Can open</span>
+          <span className="stat-value">{openers}</span>
+          <span className="stat-note">Needed for the first hour</span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Supervisors / in training</span>
+          <span className="stat-value">
+            {supervisors}
+            <small>/ {trainees}</small>
+          </span>
+          <span className="stat-note">Up to {data.restaurant.skillRules.supervisionCapacity} trainees each</span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Skills unverified</span>
+          <span className="stat-value">{unverified}</span>
+          <span className={`stat-note ${unverified ? "caution" : "positive"}`}>
+            {unverified ? "Can’t be suggested for swaps" : "Everyone verified"}
+          </span>
         </div>
       </div>
       <section className="panel">
+        <div className="filter-bar">
+          <div className="segmented" role="tablist" aria-label="Filter by skill">
+            {(
+              [
+                ["all", "Everyone"],
+                ["close", "Can close"],
+                ["open", "Can open"],
+                ["train", "Supervisors"],
+                ["unverified", "Unverified"],
+              ] as const
+            ).map(([id, label]) => (
+              <button key={id} role="tab" aria-selected={filter === id} onClick={() => setFilter(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="search-field" style={{ width: 240 }}>
+            <Search size={15} />
+            <input aria-label="Search team" placeholder="Search team" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+        </div>
         <div className="table-scroll">
           <table className="team-table directory">
             <thead>
               <tr>
-                <th>TEAM MEMBER</th>
-                <th>ROLE & ELIGIBILITY</th>
-                <th>PREFERRED / MAX HOURS</th>
-                <th>THIS WEEK</th>
+                <th>Person</th>
+                <th>
+                  <div className="capability-grid" style={{ textTransform: "none", letterSpacing: 0 }}>
+                    <span>Opens</span>
+                    <span>Closes</span>
+                    <span>Supervises</span>
+                    <span>Service</span>
+                  </div>
+                </th>
+                <th>Shift types</th>
+                <th>This week</th>
                 <th />
               </tr>
             </thead>
             <tbody>
-              {people.map((e) => (
-                <tr key={e.id}>
-                  <td>
-                    <div className="person-cell">
-                      <Avatar employee={e} />
-                      <div>
-                        <strong>{e.name}</strong>
-                        <small>{e.email}</small>
-                        <SkillBadges employee={e} />
+              {people.map((e) => {
+                const h = employeeHours(roster, e.id);
+                return (
+                  <tr key={e.id}>
+                    <td>
+                      <div className="person-cell">
+                        <Avatar employee={e} />
+                        <div>
+                          <strong>{e.name}</strong>
+                          <small>
+                            {e.role}
+                            {e.supervisionSkillId ? " · In training" : ""}
+                          </small>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <strong className="table-normal">{e.role}</strong>
-                    <small className="table-sub">
-                      {e.eligible.join(" · ")}
-                    </small>
-                  </td>
-                  <td>
-                    {e.preferredHours}h{" "}
-                    <span className="muted">/ {e.maxHours}h maximum</span>
-                  </td>
-                  <td>
-                    <Badge
-                      tone={
-                        employeeHours(roster, e.id) >= e.preferredHours
-                          ? "sage"
-                          : "sand"
-                      }
-                    >
-                      {employeeHours(roster, e.id)}h assigned
-                    </Badge>
-                  </td>
-                  <td>
-                    <button
-                      className="btn small"
-                      onClick={() => setSkillEditor(e)}
-                      aria-label={`Review skills for ${e.name}`}
-                    >
-                      Skills
-                    </button>
-                    <button
-                      className="icon-btn"
-                      onClick={() => setEditor(e)}
-                      aria-label={`Edit ${e.name}`}
-                    >
-                      <ArrowUpRight size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <div className="capability-grid">
+                        <Cap e={e} skill="open" label="Opens" />
+                        <Cap e={e} skill="close" label="Closes" />
+                        {e.supervisionSkillId ? (
+                          <span className="cap trainee" title="In training: works with a supervisor">
+                            Trainee
+                          </span>
+                        ) : (
+                          <Cap e={e} skill="train" label="Supervises" />
+                        )}
+                        <Cap e={e} skill="service" label="Service" />
+                      </div>
+                    </td>
+                    <td>
+                      <span className="table-sub" style={{ color: "var(--ink-2)" }}>
+                        {e.eligible.join(", ")}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: "grid", gap: 4 }}>
+                        <span className="tabular" style={{ fontSize: 13 }}>
+                          <NumberValue value={h} />h <span className="muted">of {e.preferredHours}h preferred · max {e.maxHours}h</span>
+                        </span>
+                        <span className="hours-track">
+                          <i style={{ width: `${Math.min(100, (h / Math.max(e.preferredHours, 1)) * 100)}%`, background: h > e.preferredHours ? "#e2a33a" : undefined }} />
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <button className="btn small" onClick={() => setSkillEditor(e)} aria-label={`Verify skills for ${e.name}`}>
+                        <ShieldCheck size={13} /> Skills
+                      </button>{" "}
+                      <button className="icon-btn" onClick={() => setEditor(e)} aria-label={`Edit ${e.name}`}>
+                        <Pencil size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {!people.length && (
-            <div className="empty-state">
-              <Search size={25} />
-              <h3>No matching team members</h3>
-              <p>Try another name or role.</p>
-            </div>
+            <EmptyState icon={<Search size={20} />} title="No one matches">
+              Try another name or filter.
+            </EmptyState>
           )}
         </div>
+        <div className="panel-foot">
+          <span style={{ display: "inline-flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <span className="cap yes" style={{ width: 22, display: "inline-grid" }}>
+              <Check size={11} strokeWidth={3} />
+            </span>
+            Verified
+            <span className="cap" style={{ width: 22, display: "inline-grid" }}>–</span>
+            Not qualified
+            <span className="cap unknown" style={{ width: 22, display: "inline-grid" }}>?</span>
+            Unknown until verified
+          </span>
+          <span>Preferred hours are a preference; maximum hours are a hard limit.</span>
+        </div>
       </section>
-      <div className="info-box">
-        <FlaskConical size={18} />
-        All 15 initial employees are fictional. Preferred hours are a
-        preference; maximum hours are a hard limit.
-      </div>
-      {skillEditor && (
-        <SkillProfileDialog
-          employee={skillEditor}
-          onClose={() => setSkillEditor(null)}
-        />
-      )}
-      {editor && (
-        <EmployeeDialog
-          employee={editor === "new" ? undefined : editor}
-          onClose={() => setEditor(null)}
-        />
-      )}
+      {skillEditor && <SkillProfileDialog employee={skillEditor} onClose={() => setSkillEditor(null)} />}
+      {editor && <EmployeeDialog employee={editor === "new" ? undefined : editor} onClose={() => setEditor(null)} />}
     </>
   );
 }
-function EmployeeDialog({
-  employee,
-  onClose,
-}: {
-  employee?: Employee;
-  onClose: () => void;
-}) {
-  const { mutate, saving } = useApp(),
+
+function EmployeeDialog({ employee, onClose }: { employee?: Employee; onClose: () => void }) {
+  const { mutate, saving, notify } = useApp(),
     [error, setError] = useState(""),
     [form, setForm] = useState<Employee>(
       () =>
@@ -207,10 +276,7 @@ function EmployeeDialog({
           minRestHours: 11,
           maxShiftHours: 9,
           eligible: ["Opening", "Midday", "Closing"],
-          availability: Array.from({ length: 7 }, () => ({
-            start: 600,
-            end: 1380,
-          })),
+          availability: Array.from({ length: 7 }, () => ({ start: 600, end: 1380 })),
           absentDates: [],
         },
     );
@@ -218,6 +284,7 @@ function EmployeeDialog({
     e.preventDefault();
     try {
       await mutate({ type: "employee", employee: form });
+      notify(employee ? "Profile updated" : `${form.name} added to the team`);
       onClose();
     } catch (e) {
       setError((e as Error).message);
@@ -225,91 +292,53 @@ function EmployeeDialog({
   }
   return (
     <Modal
-      title={employee ? "People, with preferences" : "A new face on the team"}
-      description="Fictional employment profiles only. Sign-in access is provisioned separately by the local administrator; contact details and shift-leader roles do not change account permissions."
+      title={employee ? `Edit ${employee.name}` : "Add team member"}
+      description="Profile details only. Sign-in accounts are created separately by an administrator."
       onClose={onClose}
+      variant="drawer"
     >
       <form className="editor-form" onSubmit={save}>
         <ErrorBox error={error} />
         <label>
           Full name
-          <input
-            required
-            minLength={2}
-            maxLength={80}
-            autoFocus
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
+          <input required minLength={2} maxLength={80} autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         </label>
         <label>
-          Email address
-          <input
-            type="email"
-            required
-            value={form.email}
-            placeholder="name@example.test"
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
+          Email
+          <input type="email" required value={form.email} placeholder="name@example.test" onChange={(e) => setForm({ ...form, email: e.target.value })} />
         </label>
         <div className="form-row">
           <label>
             Role
-            <select
-              value={form.role}
-              onChange={(e) =>
-                setForm({ ...form, role: e.target.value as Employee["role"] })
-              }
-            >
+            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Employee["role"] })}>
               <option>Team member</option>
               <option>Shift leader</option>
             </select>
           </label>
           <label>
-            Profile colour
-            <select
-              value={form.color}
-              onChange={(e) => setForm({ ...form, color: e.target.value })}
-            >
+            Avatar colour
+            <select value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })}>
               {["sage", "blue", "peach", "lilac", "rose", "sand"].map((c) => (
-                <option key={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c[0].toUpperCase() + c.slice(1)}
+                </option>
               ))}
             </select>
           </label>
         </div>
         <div className="form-row">
           <label>
-            Preferred weekly hours
-            <input
-              type="number"
-              min={0}
-              max={60}
-              step={0.5}
-              value={form.preferredHours}
-              required
-              onChange={(e) =>
-                setForm({ ...form, preferredHours: Number(e.target.value) })
-              }
-            />
+            Preferred hours / week
+            <input type="number" min={0} max={60} step={0.5} value={form.preferredHours} required onChange={(e) => setForm({ ...form, preferredHours: Number(e.target.value) })} />
           </label>
           <label>
-            Maximum weekly hours
-            <input
-              type="number"
-              min={0}
-              max={60}
-              step={0.5}
-              required
-              value={form.maxHours}
-              onChange={(e) =>
-                setForm({ ...form, maxHours: Number(e.target.value) })
-              }
-            />
+            Maximum hours / week
+            <input type="number" min={0} max={60} step={0.5} required value={form.maxHours} onChange={(e) => setForm({ ...form, maxHours: Number(e.target.value) })} />
           </label>
         </div>
         <fieldset>
-          <legend>Eligible shift types</legend>
-          <div className="checkbox-row">
+          <legend>Can work these shift types</legend>
+          <div className="flex-row">
             {(["Opening", "Midday", "Closing"] as const).map((k) => (
               <label className="checkbox-label" key={k}>
                 <input
@@ -318,9 +347,7 @@ function EmployeeDialog({
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      eligible: e.target.checked
-                        ? [...form.eligible, k]
-                        : form.eligible.filter((x) => x !== k),
+                      eligible: e.target.checked ? [...form.eligible, k] : form.eligible.filter((x) => x !== k),
                     })
                   }
                 />
@@ -328,30 +355,33 @@ function EmployeeDialog({
               </label>
             ))}
           </div>
+          <span className="form-hint">Skills like closing are verified separately under Skills.</span>
         </fieldset>
         {employee && form.absentDates.length > 0 && (
-          <div className="info-box">
-            Approved fictional absences: {form.absentDates.join(", ")}. Absence
-            requests are part of a future milestone.
-          </div>
+          <Callout tone="neutral" title="Approved time off">
+            {form.absentDates.map(shortDate).join(", ")}
+          </Callout>
         )}
         <p className="form-hint">
-          11h minimum rest · 9h maximum shift. New profiles start available
-          10:00–23:00 daily; update availability before scheduling.
+          New people start as available 10:00–23:00 every day with unverified skills. Update their availability and
+          verify skills before scheduling them.
         </p>
         <div className="modal-actions">
           <button className="btn" type="button" onClick={onClose}>
             Cancel
           </button>
           <button className="btn primary" disabled={saving}>
-            {saving ? "Saving…" : "Save team member"}
-            <Check size={15} />
+            <Check size={15} /> {saving ? "Saving…" : employee ? "Save changes" : "Add to team"}
           </button>
         </div>
       </form>
     </Modal>
   );
 }
+
+/* =====================================================================
+   Availability
+   ===================================================================== */
 
 export function Availability() {
   return (
@@ -365,45 +395,50 @@ function AvailabilityContent() {
     [editor, setEditor] = useState<Employee | null>(null),
     [query, setQuery] = useState("");
   if (!data) return null;
+  const pending = (data.requests ?? []).filter(
+    (r) => (r.kind === "availability" || r.kind === "time-off") && (r.status === "pending-manager"),
+  ).length;
+  const windowFor = (e: Employee, d: number) => {
+    const date = dateAt(week, d);
+    const o = e.availabilityOverrides?.find((x) => x.date === date);
+    return o ? { w: o.window, override: true } : { w: e.availability[d], override: false };
+  };
   return (
     <>
-      <PageTitle
-        eyebrow="EVERYONE HAS THEIR OWN RHYTHM"
-        title="Find the time that fits."
-        description="Confirmed recurring availability, with room for life outside work."
-      >
+      <PageTitle title="Availability" description="When each person can work. Shifts and swaps are always checked against this.">
         <WeekPicker />
       </PageTitle>
-      <div className="section-strip">
-        <div className="flex-row">
-          <span>
-            <span className="status-dot" />
-            Confirmed availability
-          </span>
-          <span>
-            <span className="status-dot absence-dot" />
-            Approved absence
-          </span>
-        </div>
-        <div className="search-field">
-          <Search size={16} />
-          <input
-            placeholder="Find a team member…"
-            aria-label="Search availability"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-      </div>
+      {pending > 0 && (
+        <Callout tone="caution" title={`${plural(pending, "availability or time-off request")} waiting for you`}>
+          Review them in the <a className="text-link" href="/requests">Swap Centre</a>.
+        </Callout>
+      )}
       <section className="panel">
-        <div className="roster-scroll">
-          <table className="availability-table">
+        <div className="filter-bar">
+          <div className="flex-row" style={{ fontSize: 12.5, color: "var(--muted)", gap: 14 }}>
+            <span className="flex-row" style={{ gap: 6 }}>
+              <span className="availability-block" style={{ width: 22, height: 14 }} /> Available
+            </span>
+            <span className="flex-row" style={{ gap: 6 }}>
+              <span className="availability-block absence" style={{ width: 22, height: 14 }} /> Time off
+            </span>
+            <span className="flex-row" style={{ gap: 6 }}>
+              <span className="availability-block unavailable" style={{ width: 22, height: 14 }} /> Unavailable
+            </span>
+          </div>
+          <div className="search-field" style={{ width: 240 }}>
+            <Search size={15} />
+            <input placeholder="Search team" aria-label="Search availability" value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+        </div>
+        <div className="table-scroll">
+          <table className="team-table availability-table" style={{ minWidth: 900 }}>
             <thead>
               <tr>
-                <th>TEAM MEMBER</th>
+                <th>Person</th>
                 {DAYS.map((d, i) => (
                   <th key={d}>
-                    {d.toUpperCase()} <span>{dateAt(week, i).slice(-2)}</span>
+                    {d} {dayOfMonth(dateAt(week, i))}
                   </th>
                 ))}
                 <th />
@@ -411,9 +446,7 @@ function AvailabilityContent() {
             </thead>
             <tbody>
               {data.employees
-                .filter((e) =>
-                  e.name.toLowerCase().includes(query.toLowerCase()),
-                )
+                .filter((e) => e.name.toLowerCase().includes(query.toLowerCase()))
                 .map((e) => (
                   <tr key={e.id}>
                     <td>
@@ -422,38 +455,30 @@ function AvailabilityContent() {
                         <strong>{e.name}</strong>
                       </div>
                     </td>
-                    {e.availability.map((a, d) => (
-                      <td key={d}>
-                        {e.absentDates.includes(dateAt(week, d)) ? (
-                          <span className="availability-block absence">
-                            Approved time off
-                          </span>
-                        ) : a ? (
-                          <button
-                            className="availability-block"
-                            aria-label={`Edit ${e.name}'s ${DAYS[d]} availability`}
-                            onClick={() => setEditor(e)}
-                          >
-                            {time(a.start)} – {time(a.end)}
-                          </button>
-                        ) : (
-                          <button
-                            className="availability-block unavailable"
-                            aria-label={`Edit ${e.name}'s ${DAYS[d]} availability`}
-                            onClick={() => setEditor(e)}
-                          >
-                            Unavailable
-                          </button>
-                        )}
-                      </td>
-                    ))}
+                    {DAYS.map((_, d) => {
+                      const { w, override } = windowFor(e, d);
+                      return (
+                        <td key={d}>
+                          {e.absentDates.includes(dateAt(week, d)) ? (
+                            <span className="availability-block absence">Time off</span>
+                          ) : (
+                            <button
+                              className={`availability-block ${w ? "" : "unavailable"}`}
+                              style={{ width: "100%" }}
+                              aria-label={`Edit ${e.name}'s ${DAYS[d]} availability`}
+                              onClick={() => setEditor(e)}
+                              title={override ? "One-off change for this date" : undefined}
+                            >
+                              {w ? `${time(w.start)}–${time(w.end)}` : "—"}
+                              {override && " *"}
+                            </button>
+                          )}
+                        </td>
+                      );
+                    })}
                     <td>
-                      <button
-                        className="icon-btn"
-                        onClick={() => setEditor(e)}
-                        aria-label={`Edit availability for ${e.name}`}
-                      >
-                        <ArrowUpRight size={16} />
+                      <button className="icon-btn" onClick={() => setEditor(e)} aria-label={`Edit availability for ${e.name}`}>
+                        <Pencil size={15} />
                       </button>
                     </td>
                   </tr>
@@ -461,59 +486,36 @@ function AvailabilityContent() {
             </tbody>
           </table>
         </div>
+        <div className="panel-foot">
+          <span>* One-off change for that date. Approved time off always takes priority.</span>
+          <span>Changes that clash with existing shifts are blocked until those shifts are moved.</span>
+        </div>
       </section>
-      <div className="info-box">
-        <CalendarDays size={18} />
-        Recurring windows apply to every week. Approved date-specific absences
-        override them. Changes that conflict with existing shifts are blocked.
-      </div>
-      {editor && (
-        <AvailabilityDialog employee={editor} onClose={() => setEditor(null)} />
-      )}
+      {editor && <AvailabilityDialog employee={editor} onClose={() => setEditor(null)} />}
     </>
   );
 }
-function AvailabilityDialog({
-  employee,
-  onClose,
-}: {
-  employee: Employee;
-  onClose: () => void;
-}) {
-  const { mutate, saving } = useApp(),
-    [windows, setWindows] = useState<(Window | null)[]>(
-      structuredClone(employee.availability),
-    ),
+
+function AvailabilityDialog({ employee, onClose }: { employee: Employee; onClose: () => void }) {
+  const { mutate, saving, notify } = useApp(),
+    [windows, setWindows] = useState<(Window | null)[]>(structuredClone(employee.availability)),
     [error, setError] = useState("");
   function update(i: number, key: "start" | "end", value: string) {
     const [h, m] = value.split(":").map(Number);
-    setWindows((w) =>
-      w.map((v, d) =>
-        d === i
-          ? { ...(v ?? { start: 600, end: 1380 }), [key]: h * 60 + m }
-          : v,
-      ),
-    );
+    setWindows((w) => w.map((v, d) => (d === i ? { ...(v ?? { start: 600, end: 1380 }), [key]: h * 60 + m } : v)));
   }
   async function save(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await mutate({
-        type: "availability",
-        employeeId: employee.id,
-        availability: windows,
-      });
+      await mutate({ type: "availability", employeeId: employee.id, availability: windows });
+      notify(`Availability updated for ${employee.name.split(" ")[0]}`);
       onClose();
     } catch (e) {
       setError((e as Error).message);
     }
   }
   return (
-    <Modal
-      title="A week that works for you"
-      description={`Recurring confirmed availability · ${employee.name}`}
-      onClose={onClose}
-    >
+    <Modal title={`${employee.name}’s availability`} description="Repeats every week. Times in half-hour steps." onClose={onClose} variant="drawer">
       <form className="editor-form" onSubmit={save}>
         <ErrorBox error={error} />
         <div className="availability-editor">
@@ -524,62 +526,41 @@ function AvailabilityDialog({
                   type="checkbox"
                   checked={windows[i] !== null}
                   onChange={(e) =>
-                    setWindows((w) =>
-                      w.map((a, k) =>
-                        k === i
-                          ? e.target.checked
-                            ? { start: 600, end: 1380 }
-                            : null
-                          : a,
-                      ),
-                    )
+                    setWindows((w) => w.map((a, k) => (k === i ? (e.target.checked ? { start: 600, end: 1380 } : null) : a)))
                   }
                 />
                 <strong>{d}</strong>
               </label>
               {windows[i] ? (
                 <>
-                  <input
-                    aria-label={`${d} availability start`}
-                    type="time"
-                    step="1800"
-                    required
-                    value={time(windows[i]!.start)}
-                    onChange={(e) => update(i, "start", e.target.value)}
-                  />
-                  <span>to</span>
-                  <input
-                    aria-label={`${d} availability end`}
-                    type="time"
-                    step="1800"
-                    required
-                    value={time(windows[i]!.end)}
-                    onChange={(e) => update(i, "end", e.target.value)}
-                  />
+                  <input aria-label={`${d} from`} type="time" step="1800" required value={time(windows[i]!.start)} onChange={(e) => update(i, "start", e.target.value)} />
+                  <input aria-label={`${d} until`} type="time" step="1800" required value={time(windows[i]!.end)} onChange={(e) => update(i, "end", e.target.value)} />
                 </>
               ) : (
-                <span className="muted">Not available</span>
+                <span className="muted" style={{ gridColumn: "span 2" }}>
+                  Not available
+                </span>
               )}
             </div>
           ))}
         </div>
-        <p className="form-hint">
-          Half-hour intervals · Europe/Amsterdam. Existing shifts must remain
-          within confirmed availability.
-        </p>
+        <p className="form-hint">Existing shifts must still fit inside the new availability.</p>
         <div className="modal-actions">
           <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
           <button className="btn primary" disabled={saving}>
-            {saving ? "Saving…" : "Save availability"}
-            <Check size={15} />
+            <Check size={15} /> {saving ? "Saving…" : "Save availability"}
           </button>
         </div>
       </form>
     </Modal>
   );
 }
+
+/* =====================================================================
+   Labour & coverage
+   ===================================================================== */
 
 export function Labour() {
   return (
@@ -594,228 +575,159 @@ function LabourContent() {
   if (!data) return null;
   const roster = getWeek(data, week),
     m = metrics(roster, data),
-    intervals = coverage(roster, data.scenario);
+    intervals = coverage(roster, data.scenario),
+    diff = m.hours - m.budget;
   return (
     <>
-      <PageTitle
-        eyebrow="A LITTLE CLARITY GOES A LONG WAY"
-        title="Know where your hours go."
-        description="Thoughtful labour planning starts with an honest picture."
-      >
+      <PageTitle title="Labour & coverage" description="Scheduled hours against your targets, and where the team is stretched thin.">
         <WeekPicker />
-        <button className="btn primary" onClick={() => setEditing(true)}>
+        <button className="btn" onClick={() => setEditing(true)}>
           Edit daily targets
         </button>
       </PageTitle>
-      <div className="labour-metrics">
-        <div>
-          <span>Scheduled paid hours</span>
-          <strong>
-            {m.hours}
-            <small> hrs</small>
-          </strong>
+      <div className="stat-row">
+        <div className="stat">
+          <span className="stat-label">Scheduled paid hours</span>
+          <span className="stat-value">
+            <NumberValue value={m.hours} />h
+          </span>
         </div>
-        <div>
-          <span>Recommended weekly hours</span>
-          <strong>
-            {m.budget}
-            <small> hrs</small>
-          </strong>
+        <div className="stat">
+          <span className="stat-label">Labour target</span>
+          <span className="stat-value">{m.budget}h</span>
         </div>
-        <div>
-          <span>Budget deviation</span>
-          <strong className={m.hours > m.budget ? "orange-text" : ""}>
-            {m.hours - m.budget > 0 ? "+" : ""}
-            {(m.hours - m.budget).toFixed(1)}
-            <small> hrs</small>
-          </strong>
+        <div className="stat">
+          <span className="stat-label">Difference</span>
+          <span className="stat-value" style={{ color: diff > 0 ? "var(--caution)" : undefined }}>
+            {diff > 0 ? "+" : ""}
+            {diff.toFixed(1)}h
+          </span>
+          <span className="stat-note">Targets guide planning; they’re not hard limits</span>
         </div>
-        <div>
-          <span>Staffing target coverage</span>
-          <strong>
+        <div className="stat">
+          <span className="stat-label">Staffing coverage</span>
+          <span className="stat-value">
             {m.coverage}
             <small>%</small>
-          </strong>
+          </span>
+          <span className={`stat-note ${m.gaps.length ? "caution" : "positive"}`}>{plural(m.gaps.length, "half-hour")} short</span>
         </div>
       </div>
-      <section className="panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Every day has its own rhythm</h2>
-            <p>Labour recommendations are soft targets, never hard ceilings.</p>
+      <div className="overview-grid">
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Hours per day</h2>
+              <p>Scheduled paid hours against each day’s target.</p>
+            </div>
           </div>
-          <div className="chart-legend">
-            <span>
-              <i className="legend-swatch target" />
-              Recommended
-            </span>
-            <span>
-              <i className="legend-swatch actual" />
-              Scheduled
-            </span>
+          <LabourChart week={roster} />
+        </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Hours per person</h2>
+              <p>Against each person’s preferred hours.</p>
+            </div>
           </div>
-        </div>
-        <LabourChart week={roster} />
-        <div className="table-scroll">
-          <table className="team-table">
-            <thead>
-              <tr>
-                <th>DAY</th>
-                {DAYS.map((d) => (
-                  <th key={d}>{d.toUpperCase()}</th>
-                ))}
-                <th>WEEK</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Recommended</td>
-                {roster.budgets.map((b, i) => (
-                  <td key={i}>{b}h</td>
-                ))}
-                <td>{m.budget}h</td>
-              </tr>
-              <tr>
-                <td>Scheduled</td>
-                {DAYS.map((d, i) => (
-                  <td key={d}>{dayHours(roster, i)}h</td>
-                ))}
-                <td>{m.hours}h</td>
-              </tr>
-              <tr>
-                <td>Deviation</td>
-                {DAYS.map((d, i) => {
-                  const v = dayHours(roster, i) - roster.budgets[i];
-                  return (
-                    <td key={d} className={v > 0 ? "orange-text" : ""}>
-                      {v > 0 ? "+" : ""}
-                      {v}h
-                    </td>
-                  );
-                })}
-                <td>{(m.hours - m.budget).toFixed(1)}h</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+          <div style={{ maxHeight: 290, overflow: "auto" }}>
+            {data.employees.map((e) => {
+              const h = employeeHours(roster, e.id);
+              return (
+                <div key={e.id} className="avail-day" style={{ gridTemplateColumns: "minmax(0,1fr) 120px 64px" }}>
+                  <div className="person-cell">
+                    <Avatar employee={e} size="xs" />
+                    <strong style={{ fontSize: 13 }}>{e.name}</strong>
+                  </div>
+                  <span className="hours-track">
+                    <i style={{ width: `${Math.min(100, (h / Math.max(e.preferredHours, 1)) * 100)}%`, background: h > e.preferredHours ? "#e2a33a" : undefined }} />
+                  </span>
+                  <span className="tabular" style={{ textAlign: "right", color: "var(--muted)", fontSize: 12.5 }}>
+                    {h}/{e.preferredHours}h
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
       <section className="panel coverage-panel">
         <div className="panel-heading">
           <div>
-            <h2>The gaps behind the numbers</h2>
-            <p>
-              People present in each 30-minute interval. Unpaid breaks reduce
-              coverage.
-            </p>
+            <h2>Staffing by half-hour</h2>
+            <p>People on duty against the staffing target. Breaks are excluded.</p>
           </div>
-          <Badge tone={m.gaps.length ? "peach" : "sage"}>
-            {m.gaps.length} intervals below target
-          </Badge>
+          <Badge tone={m.gaps.length ? "caution" : "positive"}>{plural(m.gaps.length, "half-hour")} short</Badge>
         </div>
         <div className="coverage-scroll">
           <div className="coverage-grid">
-            <div className="coverage-time">
+            <div className="coverage-row">
               <span />
               {Array.from({ length: 26 }, (_, i) => (
-                <span key={i}>{i % 2 === 0 ? time(600 + i * 30) : ""}</span>
+                <span key={i} className="coverage-time" style={{ background: "none", boxShadow: "none", height: "auto" }}>
+                  {i % 4 === 0 ? time(600 + i * 30) : ""}
+                </span>
               ))}
             </div>
             {DAYS.map((d, i) => (
               <div className="coverage-row" key={d}>
-                <strong>{d}</strong>
+                <span className="coverage-time" style={{ background: "none", boxShadow: "none", height: "auto", fontWeight: 600 }}>
+                  {d}
+                </span>
                 {intervals
                   .filter((x) => x.day === i)
                   .map((x) => (
                     <span
                       key={x.minute}
                       className={x.shortage ? "gap" : "covered"}
-                      title={`${d} ${time(x.minute)}: ${x.actual} present / ${x.target} required`}
-                      aria-label={`${d} ${time(x.minute)}: ${x.actual} present of ${x.target} required`}
-                    >
-                      {x.actual}
-                      <small>/{x.target}</small>
-                    </span>
+                      title={`${d} ${time(x.minute)}: ${x.actual} on duty, target ${x.target}`}
+                      aria-label={`${d} ${time(x.minute)}: ${x.actual} on duty of ${x.target}`}
+                    />
                   ))}
               </div>
             ))}
           </div>
         </div>
         <div className="panel-foot">
-          <span>
-            <i className="legend-swatch gap" />
-            Below target <i className="legend-swatch covered" />
-            Target met
+          <span className="flex-row" style={{ gap: 12 }}>
+            <span className="flex-row" style={{ gap: 6 }}>
+              <span className="legend-swatch" style={{ background: "#fde8c8" }} /> Below target
+            </span>
+            <span className="flex-row" style={{ gap: 6 }}>
+              <span className="legend-swatch" style={{ background: "var(--positive-soft)", boxShadow: "inset 0 0 0 1px var(--positive-line)" }} /> On target
+            </span>
           </span>
-          <span>Actual headcount / target · Synthetic demand</span>
-        </div>
-      </section>
-      <section className="panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Different people. Different preferences.</h2>
-            <p>
-              Preferred hours guide the conversation. Equal hours are not
-              assumed to be fair.
-            </p>
-          </div>
-          <Users size={19} />
-        </div>
-        <div className="preference-grid">
-          {data.employees.map((e) => (
-            <div className="preference-row" key={e.id}>
-              <div className="person-cell">
-                <Avatar employee={e} small />
-                <span>{e.name}</span>
-              </div>
-              <div className="hours-track">
-                <span
-                  style={{
-                    width: `${Math.min(employeeHours(roster, e.id) / Math.max(e.preferredHours, 1), 1) * 100}%`,
-                  }}
-                />
-              </div>
-              <span>
-                {employeeHours(roster, e.id)} / {e.preferredHours}h
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="panel-foot">
-          Descriptive metrics only. No prediction, fairness score, or labour
-          savings are claimed in this milestone.
+          <span>Staffing targets come from the demo demand profile for this workspace.</span>
         </div>
       </section>
       {editing && <BudgetDialog onClose={() => setEditing(false)} />}
     </>
   );
 }
+
 function BudgetDialog({ onClose }: { onClose: () => void }) {
-  const { data, week, mutate, saving } = useApp(),
+  const { data, week, mutate, saving, notify } = useApp(),
     [budgets, setBudgets] = useState(() => [...getWeek(data!, week).budgets]),
     [error, setError] = useState("");
   async function save(e: React.FormEvent) {
     e.preventDefault();
     try {
       await mutate({ type: "budgets", week, budgets });
+      notify("Labour targets saved");
       onClose();
     } catch (e) {
       setError((e as Error).message);
     }
   }
   return (
-    <Modal
-      title="Give your week a little direction"
-      description="Recommended paid labour hours. Your roster can exceed these targets."
-      onClose={onClose}
-    >
+    <Modal title="Daily labour targets" description="Paid hours you’d like to stay around each day. Rosters can go over." onClose={onClose}>
       <form className="editor-form" onSubmit={save}>
         <ErrorBox error={error} />
         <div className="budget-editor">
           {DAYS.map((d, i) => (
-            <label key={d}>
+            <label key={d} className="field">
               <span>
-                {d}
-                <small>{dateAt(week, i)}</small>
+                {d} {dayOfMonth(dateAt(week, i))}
               </span>
               <input
                 type="number"
@@ -823,29 +735,25 @@ function BudgetDialog({ onClose }: { onClose: () => void }) {
                 max={300}
                 step={0.5}
                 required
-                aria-label={`${d} recommended labour hours`}
+                aria-label={`${d} target hours`}
                 value={budgets[i]}
-                onChange={(e) =>
-                  setBudgets((b) =>
-                    b.map((v, j) => (j === i ? Number(e.target.value) : v)),
-                  )
-                }
+                onChange={(e) => setBudgets((b) => b.map((v, j) => (j === i ? Number(e.target.value) : v)))}
               />
-              <span>hrs</span>
             </label>
           ))}
         </div>
-        <div className="budget-total">
-          <span>Weekly recommendation</span>
-          <strong>{budgets.reduce((a, b) => a + b, 0)} hrs</strong>
+        <div className="detail-list">
+          <div>
+            <span className="k">Week total</span>
+            <span className="v">{budgets.reduce((a, b) => a + b, 0)}h</span>
+          </div>
         </div>
         <div className="modal-actions">
           <button type="button" className="btn" onClick={onClose}>
             Cancel
           </button>
           <button className="btn primary" disabled={saving}>
-            <Save size={15} />
-            {saving ? "Saving…" : "Save targets"}
+            <Save size={15} /> {saving ? "Saving…" : "Save targets"}
           </button>
         </div>
       </form>
@@ -854,6 +762,11 @@ function BudgetDialog({ onClose }: { onClose: () => void }) {
 }
 
 export { ManagerRequests as Requests } from "./workforce-ui";
+
+/* =====================================================================
+   Settings
+   ===================================================================== */
+
 export function Settings() {
   return (
     <LoadGuard>
@@ -862,7 +775,7 @@ export function Settings() {
   );
 }
 function SettingsContent() {
-  const { data, mutate, saving } = useApp(),
+  const { data, mutate, saving, notify } = useApp(),
     [scenario, setScenario] = useState<Scenario | null>(null),
     [error, setError] = useState("");
   if (!data) return null;
@@ -870,6 +783,7 @@ function SettingsContent() {
     if (!scenario) return;
     try {
       await mutate({ type: "scenario", scenario });
+      notify("Demo data reloaded");
       setScenario(null);
     } catch (e) {
       setError((e as Error).message);
@@ -877,24 +791,18 @@ function SettingsContent() {
   }
   return (
     <>
-      <PageTitle
-        eyebrow="A STRONG FOUNDATION"
-        title="Room to grow."
-        description="Your restaurant, the ground rules, and a little space to experiment."
-      />
+      <PageTitle title="Settings" description="Restaurant details, staffing rules and working-time defaults." />
       <SkillRulesPanel />
       <div className="settings-grid">
         <section className="panel">
           <div className="panel-heading">
             <div>
-              <h2>Your restaurant</h2>
-              <p>Fictional pilot workspace</p>
+              <h2>Restaurant</h2>
             </div>
-            <Sprout size={21} />
           </div>
           <dl className="details-list">
             <div>
-              <dt>Restaurant</dt>
+              <dt>Name</dt>
               <dd>{data.restaurant.name}</dd>
             </div>
             <div>
@@ -902,169 +810,128 @@ function SettingsContent() {
               <dd>{data.restaurant.location}</dd>
             </div>
             <div>
-              <dt>Timezone</dt>
-              <dd>Europe/Amsterdam</dd>
+              <dt>Time zone</dt>
+              <dd>{data.restaurant.timezone}</dd>
             </div>
             <div>
-              <dt>Preparation & operating window</dt>
-              <dd>10:00–23:00</dd>
+              <dt>Opening hours (incl. prep)</dt>
+              <dd>
+                {time(data.restaurant.open)}–{time(data.restaurant.close)}
+              </dd>
             </div>
             <div>
-              <dt>Storage</dt>
-              <dd>Local PostgreSQL database</dd>
+              <dt>Sign-in</dt>
+              <dd>Password · per-restaurant roles</dd>
             </div>
             <div>
-              <dt>Authentication</dt>
-              <dd>Not active · Local demo only</dd>
+              <dt>Notifications</dt>
+              <dd>In-app only</dd>
             </div>
           </dl>
         </section>
         <section className="panel">
           <div className="panel-heading">
             <div>
-              <h2>Clear rules. Better plans.</h2>
-              <p>Validated prototype defaults</p>
+              <h2>Working-time rules</h2>
+              <p>Enforced on every shift, swap and generated roster.</p>
             </div>
-            <Clock3 size={20} />
           </div>
           <dl className="details-list">
             <div>
-              <dt>Scheduling granularity</dt>
+              <dt>Time steps</dt>
               <dd>30 minutes</dd>
             </div>
             <div>
-              <dt>Minimum rest between shifts</dt>
-              <dd>11 hours</dd>
+              <dt>Rest between shifts</dt>
+              <dd>At least 11 hours</dd>
             </div>
             <div>
-              <dt>Maximum shift length</dt>
+              <dt>Longest shift</dt>
               <dd>9 hours</dd>
             </div>
             <div>
-              <dt>Break for shifts over 5.5 hours</dt>
-              <dd>At least 30 minutes, unpaid</dd>
+              <dt>Break on shifts over 5.5 hours</dt>
+              <dd>30 minutes, unpaid</dd>
             </div>
             <div>
-              <dt>Weekly hour limits</dt>
-              <dd>Employee-specific</dd>
+              <dt>Weekly hours</dt>
+              <dd>Per person (zero-hour contracts)</dd>
             </div>
           </dl>
-          <p className="settings-note">
-            These are synthetic adult-worker rules, not a legal compliance
-            certification. Age-specific rules, applicable CAO, entitlements, and
-            DST handling require verification before a pilot.
-          </p>
+          <div className="panel-foot">
+            Defaults for adult staff. Confirm them against your collective agreement before relying on them.
+          </div>
         </section>
       </div>
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <h2>Try a different kind of week</h2>
-            <p>
-              Three deterministic fictional fixtures. Loading a fixture resets
-              all demo edits.
-            </p>
+            <h2>Integrations</h2>
           </div>
-          <FlaskConical size={20} />
         </div>
-        <div className="scenario-grid">
-          {(
-            [
-              {
-                id: "normal",
-                name: "A regular rhythm",
-                desc: "Varied availability, lunch peaks, and a few approved absences.",
-              },
-              {
-                id: "high-demand",
-                name: "A busier week",
-                desc: "Higher staffing targets and daily labour recommendations.",
-              },
-              {
-                id: "shortage",
-                name: "A tighter squeeze",
-                desc: "Severely restricted Friday and Saturday availability.",
-              },
-            ] as const
-          ).map((s) => (
-            <div
-              className={`scenario-card ${data.scenario === s.id ? "current" : ""}`}
-              key={s.id}
-            >
-              <span className="eyebrow">
-                {s.id.replace("-", " ").toUpperCase()}
-              </span>
-              <h3>{s.name}</h3>
-              <p>{s.desc}</p>
-              <button
-                className="btn small"
-                onClick={() => {
-                  setScenario(s.id);
-                  setError("");
-                }}
-              >
-                <RotateCcw size={14} />
-                {data.scenario === s.id ? "Reset this fixture" : "Load fixture"}
-              </button>
-              {data.scenario === s.id && <Badge>Active</Badge>}
-            </div>
-          ))}
+        <div className="panel-body">
+          <Callout tone="caution" icon={<Unplug size={16} />} title="No external scheduling system connected">
+            Approved swaps update the ShiftFlow roster only. If your restaurant also uses another scheduling or payroll
+            system, update it manually, or export the roster as CSV from the Schedule.
+          </Callout>
         </div>
       </section>
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <h2>The path ahead</h2>
-            <p>A working foundation, built one milestone at a time.</p>
+            <h2>
+              <FlaskConical size={15} /> Demo data
+            </h2>
+            <p>This workspace runs on a fictional team. Load a different week to explore.</p>
           </div>
-          <Badge>Milestone 5</Badge>
         </div>
-        <div className="roadmap-list">
-          {[
-            "Foundation · dashboard, team, availability, targets, draft roster",
-            "Optimization · FastAPI, OR-Tools CP-SAT, independent validation",
-            "Intelligent scheduling · alternatives, explanations, comparison",
-            "Workforce management · employee portal, requests, approved swaps",
-            "Local access · authentication, PostgreSQL, tenant isolation",
-          ].map((s, i) => (
-            <div key={s}>
-              <span className={i < 5 ? "complete" : ""}>
-                {i < 5 ? <Check size={15} /> : i + 1}
-              </span>
-              <p>{s}</p>
-              <Badge tone={i < 5 ? "sage" : "neutral"}>
-                {i < 5 ? "Implemented" : "Planned"}
-              </Badge>
+        <div className="scenario-grid">
+          {(
+            [
+              { id: "normal", name: "Regular week", desc: "Varied availability, lunch peaks and a few days off." },
+              { id: "high-demand", name: "Busy week", desc: "Higher staffing and labour targets." },
+              { id: "shortage", name: "Short-staffed week", desc: "Very limited Friday and Saturday availability." },
+            ] as const
+          ).map((s) => (
+            <div className={`scenario-card ${data.scenario === s.id ? "selected" : ""}`} key={s.id}>
+              <div className="flex-row" style={{ justifyContent: "space-between" }}>
+                <h3>{s.name}</h3>
+                {data.scenario === s.id && <Badge tone="accent">Loaded</Badge>}
+              </div>
+              <p>{s.desc}</p>
+              <div>
+                <button
+                  className="btn small"
+                  onClick={() => {
+                    setScenario(s.id);
+                    setError("");
+                  }}
+                >
+                  <RotateCcw size={13} /> {data.scenario === s.id ? "Reset" : "Load"}
+                </button>
+              </div>
             </div>
           ))}
         </div>
+        <div className="panel-foot">
+          <span>Workspace version {data.revision}</span>
+          <span>{data.audit[0] ? `Last change ${relativeTime(data.audit[0].at)}` : ""}</span>
+        </div>
       </section>
-      <div className="info-box">
-        <AlertTriangle size={19} />
-        No Strobbo connection, real employee data, paid AI calls, or public
-        deployment. The CP-SAT API is implemented locally; employee requests and
-        approvals remain local to ShiftFlow.
-      </div>
       {scenario && (
-        <Modal
-          title="Start fresh with this fixture?"
-          description="This resets the roster, employees, availability, and targets for every week."
-          onClose={() => setScenario(null)}
-        >
-          <div className="help-content">
+        <Modal title="Replace all workspace data?" description="This resets the roster, team, availability and targets for every week." onClose={() => setScenario(null)}>
+          <div className="modal-body" style={{ padding: 0, display: "grid", gap: 14 }}>
             <ErrorBox error={error} />
-            <p>
-              Your local demo edits will be replaced by the{" "}
-              <strong>{scenario.replace("-", " ")}</strong> fictional dataset.
-              Export any draft roster you want to keep first. Request history is
-              retained; active requests will be invalidated.
-            </p>
+            <Callout tone="caution">
+              Your edits will be replaced by the demo data set. Export any roster you want to keep first. Request history
+              is kept; open requests expire.
+            </Callout>
             <div className="modal-actions">
               <button className="btn" onClick={() => setScenario(null)}>
                 Keep my changes
               </button>
-              <button className="btn primary" disabled={saving} onClick={reset}>
-                {saving ? "Loading…" : "Reset and load fixture"}
+              <button className="btn danger" disabled={saving} onClick={reset}>
+                {saving ? "Loading…" : "Replace data"}
               </button>
             </div>
           </div>
@@ -1073,3 +940,5 @@ function SettingsContent() {
     </>
   );
 }
+
+

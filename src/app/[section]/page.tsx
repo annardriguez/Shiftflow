@@ -1,6 +1,7 @@
 import { EmployeeEntry } from "@/components/workforce-ui";
 import { notFound } from "next/navigation";
 import { Schedule } from "@/components/schedule-view";
+import { Intelligence } from "@/components/planner";
 import {
   Team,
   Availability,
@@ -16,6 +17,7 @@ export function generateStaticParams() {
     "labour",
     "requests",
     "settings",
+    "intelligence",
     "employee",
     "sign-in",
   ].map((section) => ({ section }));
@@ -37,6 +39,8 @@ export default async function Page({
       return <Labour />;
     case "requests":
       return <Requests />;
+    case "intelligence":
+      return <Intelligence />;
     case "sign-in":
       return <EmployeeEntry />;
     case "employee":

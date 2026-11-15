@@ -1,11 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import "@fontsource-variable/inter/index.css";
 import { AppProvider } from "@/components/provider";
 import { Shell } from "@/components/shell";
 import "./globals.css";
 export const metadata: Metadata = {
-  title: "ShiftFlow · Your team, in flow",
+  title: "ShiftFlow",
   description:
-    "A thoughtful workspace for restaurant teams. Local fictional-data demonstration.",
+    "Smarter shifts. Simpler swaps. Scheduling and shift swapping for restaurant teams.",
+};
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f6f7f9",
 };
 export default function RootLayout({
   children,

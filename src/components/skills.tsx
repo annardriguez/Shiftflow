@@ -1,26 +1,36 @@
 "use client";
 import { workspaceFetch } from "@/lib/workspace-fetch";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Check,
   ShieldCheck,
-  UserRoundSearch,
   AlertTriangle,
-  RefreshCw,
   Plus,
   Trash2,
+  KeyRound,
+  HelpCircle,
 } from "lucide-react";
 import { useApp } from "./provider";
-import { Avatar, Badge, ErrorBox, Modal } from "./ui";
+import { Badge, Callout, CanClose, ErrorBox, Modal } from "./ui";
 import type { Employee, Shift, SkillRules, SkillDefinition } from "@/lib/types";
 import {
   qualified,
   skillDiagnostics,
   skillName,
-  type CoverAssessment,
 } from "@/lib/skills";
 import { DAYS, time } from "@/lib/schedule";
 
+const SHORT: Record<string, string> = {
+  open: "Opens",
+  close: "Closes",
+  train: "Supervises",
+  service: "Service",
+};
+
+/**
+ * Compact capability indicators. Only manager-verified skills are shown as
+ * capabilities; an unreviewed profile is shown as unknown, never as competent.
+ */
 export function SkillBadges({
   employee,
   compact = false,
@@ -37,47 +47,79 @@ export function SkillBadges({
   if (!employee.skillsReviewedAt)
     return (
       <span className="skill-badges">
-        <Badge tone="peach">Skills need review</Badge>
+        <span className="skill-tag unverified" title="Skills haven’t been verified by a manager yet">
+          <HelpCircle size={10} /> Skills unverified
+        </span>
       </span>
     );
-  const names: Record<string, string> = {
-    open: "Opener",
-    close: "Closer",
-    train: employee.supervisionSkillId ? "Training qualified" : "Supervisor",
-    service: "Service",
-  };
+  const verified = employee.competencies.filter(
+    (q) =>
+      qualified(employee, q.skillId) &&
+      (!compact || (q.skillId !== "service" && q.skillId !== "train")),
+  );
   return (
     <span className={`skill-badges ${compact ? "compact-skills" : ""}`}>
-      {employee.competencies
-        .filter(
-          (q) =>
-            qualified(employee, q.skillId) &&
-            (!compact || q.skillId !== "service"),
-        )
+      {verified
+        .sort((a, b) => (a.skillId === "close" ? -1 : b.skillId === "close" ? 1 : 0))
         .map((q) => (
           <span
             key={q.skillId}
-            className={`skill-tag ${q.skillId === "close" ? "skill-closer" : ""}`}
-            title={`${name(q.skillId)} · Verified by ${q.verifiedBy} on ${q.verifiedAt}`}
+            className={`skill-tag ${q.skillId === "close" ? "skill-closer" : q.skillId === "open" ? "skill-opener" : ""}`}
+            title={`${name(q.skillId)} · verified ${new Date(q.verifiedAt).toLocaleDateString("en-GB")}`}
           >
-            <ShieldCheck size={10} />
-            {names[q.skillId] ?? name(q.skillId)}
+            {q.skillId === "close" && <KeyRound size={10} />}
+            {SHORT[q.skillId] ?? name(q.skillId)}
           </span>
         ))}
       {employee.supervisionSkillId && (
-        <span
-          className="skill-tag trainee"
-          title={`Requires ${name(employee.supervisionSkillId)} supervision`}
-        >
-          Needs supervision
+        <span className="skill-tag trainee" title={`In training: needs a colleague who can ${name(employee.supervisionSkillId).toLowerCase()}`}>
+          In training
         </span>
       )}
-      {!employee.competencies.length && !employee.supervisionSkillId && (
-        <span className="skill-tag trainee">No verified skills</span>
+      {!verified.length && !employee.supervisionSkillId && (
+        <span className="skill-tag">No verified skills</span>
       )}
     </span>
   );
 }
+
+/** Larger capability list for profiles. */
+export function CapabilityTags({
+  employee,
+  catalog,
+}: {
+  employee: Employee;
+  catalog: SkillDefinition[];
+}) {
+  if (!employee.skillsReviewedAt)
+    return (
+      <Callout tone="caution" title="Skills not verified yet">
+        A manager hasn’t reviewed this profile, so ShiftFlow treats every skill as unknown.
+      </Callout>
+    );
+  return (
+    <div className="detail-list">
+      {catalog.map((k) => {
+        const yes = qualified(employee, k.id);
+        return (
+          <div key={k.id}>
+            <span className="k">{k.name}</span>
+            <span className="v" style={{ color: yes ? (k.id === "close" ? "var(--closing)" : "var(--positive)") : "var(--faint)" }}>
+              {yes ? (k.id === "close" ? <><CanClose /> Verified</> : "Verified") : "Not yet"}
+            </span>
+          </div>
+        );
+      })}
+      {employee.supervisionSkillId && (
+        <div>
+          <span className="k">Training</span>
+          <span className="v" style={{ color: "var(--accent-ink)" }}>Works with a supervisor</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SkillProfileDialog({
   employee,
   onClose,
@@ -106,18 +148,18 @@ export function SkillProfileDialog({
   }
   return (
     <Modal
-      title="Skills you can count on"
-      description={`${employee.name} · Task-specific manager review`}
+      title="Verify skills"
+      description={`${employee.name} · What they can do on their own`}
       onClose={onClose}
     >
       <form className="editor-form" onSubmit={save}>
         <ErrorBox error={error} />
-        <div className="info-box">
-          Local demo manager only. These objective qualifications are not
-          ratings. Real manager authorization is required before a pilot.
-        </div>
+        <Callout tone="neutral">
+          Skills are yes/no qualifications, not ratings. They decide who can be
+          asked to cover which shifts. Every change is recorded.
+        </Callout>
         <fieldset className="skill-checklist">
-          <legend>Confirm verified competencies</legend>
+          <legend>Verified skills</legend>
           {data.restaurant.skillRules.catalog.map((k) => (
             <label className="checkbox-label" key={k.id}>
               <input
@@ -136,23 +178,23 @@ export function SkillProfileDialog({
           ))}
         </fieldset>
         <label>
-          Supervision requirement
+          Training status
           <select
             value={supervision}
             onChange={(e) => setSupervision(e.target.value)}
           >
-            <option value="">Independent · no supervision required</option>
+            <option value="">Works independently</option>
             {data.restaurant.skillRules.catalog.map((k) => (
               <option value={k.id} key={k.id}>
-                Needs a colleague qualified in: {k.name}
+                In training · needs someone who can: {k.name.toLowerCase()}
               </option>
             ))}
           </select>
         </label>
         <p className="form-hint">
-          Supervisors must be independent and on duty. Breaks interrupt
-          coverage. Revoking a skill is always recorded; any resulting roster
-          gaps stay visible.
+          A trainee is always scheduled alongside an independent colleague on
+          duty. Removing a skill is recorded, and any roster gaps it causes stay
+          visible until fixed.
         </p>
         {employee.skillsReviewedAt && (
           <p className="form-hint">
@@ -169,7 +211,7 @@ export function SkillProfileDialog({
           </button>
           <button className="btn primary" disabled={saving}>
             <Check size={15} />
-            {saving ? "Saving…" : "Verify and save skills"}
+            {saving ? "Saving…" : "Save verified skills"}
           </button>
         </div>
       </form>
@@ -206,17 +248,17 @@ export function SkillCoverage({ shift }: { shift: Shift }) {
     <div className="skill-coverage">
       <div className="skill-coverage-heading">
         <ShieldCheck size={17} />
-        <strong>Team skills during this shift</strong>
+        <strong>Skills on shift</strong>
         <Badge tone={issues.length ? "peach" : "sage"}>
           {issues.length
-            ? `${issues.length} checks need attention`
-            : "Configured skill checks met"}
+            ? `${issues.length} to fix`
+            : "All covered"}
         </Badge>
       </div>
       {employee && <SkillBadges employee={employee} />}
-      <p>
-        Includes the proposed worker, overlapping colleagues, unpaid breaks, and
-        shared supervision capacity.
+      <p className="form-hint">
+        Checks opening, closing and service cover plus trainee supervision for
+        everyone on duty during this shift, including breaks.
       </p>
       {issues.length ? (
         <>
@@ -243,11 +285,11 @@ export function SkillCoverage({ shift }: { shift: Shift }) {
         </>
       ) : (
         <p className="skill-clear">
-          All configured skill and supervision checks pass within this window.
+          Opening, closing, service and supervision are all covered during this shift.
         </p>
       )}
       <details className="supervision-details">
-        <summary>Qualified coverage by interval</summary>
+        <summary>Qualified people per half hour</summary>
         {d.coverage.filter(
           (r) => r.minute < shift.end && r.minute + 30 > shift.start,
         ).length ? (
@@ -268,7 +310,7 @@ export function SkillCoverage({ shift }: { shift: Shift }) {
                   <tr key={`${r.minute}-${r.skillId}`}>
                     <td>{time(r.minute)}</td>
                     <td>{skillName(data.restaurant.skillRules, r.skillId)}</td>
-                    <td className={r.actual < r.required ? "orange-text" : ""}>
+                    <td style={r.actual < r.required ? { color: "var(--negative)", fontWeight: 600 } : undefined}>
                       {r.actual} / {r.required}
                     </td>
                   </tr>
@@ -276,15 +318,12 @@ export function SkillCoverage({ shift }: { shift: Shift }) {
             </tbody>
           </table>
         ) : (
-          <p>
-            No interval skill requirements apply in this window. Personal duty
-            and supervision checks still apply.
-          </p>
+          <p>No skill minimums apply in this window.</p>
         )}
       </details>
       {pairings.length > 0 && (
         <details className="supervision-details">
-          <summary>Supervision pairings by interval</summary>
+          <summary>Who supervises whom</summary>
           <ul className="skill-issue-list">
             {pairings.map((p) => (
               <li key={`${p.minute}-${p.traineeId}`}>
@@ -298,195 +337,6 @@ export function SkillCoverage({ shift }: { shift: Shift }) {
     </div>
   );
 }
-export function CoverDialog({
-  shift,
-  onClose,
-}: {
-  shift: Shift;
-  onClose: () => void;
-}) {
-  const { data, week, reload } = useApp(),
-    [assessment, setAssessment] = useState<CoverAssessment | null>(null),
-    [error, setError] = useState(""),
-    [loading, setLoading] = useState(true),
-    [retry, setRetry] = useState(0),
-    [showBlocked, setShowBlocked] = useState(false);
-  useEffect(() => {
-    let active = true;
-    const controller = new AbortController();
-    setLoading(true);
-    setAssessment(null);
-    setError("");
-    fetch(
-      `/api/shift-cover?week=${encodeURIComponent(week)}&shiftId=${encodeURIComponent(shift.id)}`,
-      { signal: controller.signal, cache: "no-store" },
-    )
-      .then(async (r) => {
-        const body = await r.json();
-        if (!r.ok) throw new Error(body.error);
-        if (active) setAssessment(body);
-      })
-      .catch((e) => {
-        if (active) setError((e as Error).message);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-      controller.abort();
-    };
-  }, [week, shift.id, data?.revision, retry]);
-  if (!data) return null;
-  const stale = assessment && assessment.revision !== data.revision;
-  const candidates = stale ? [] : (assessment?.candidates ?? []),
-    eligible = candidates.filter((c) => c.eligible),
-    blocked = candidates.filter((c) => !c.eligible),
-    savedShift =
-      data.weeks
-        .find((w) => w.start === week)
-        ?.shifts.find((s) => s.id === shift.id) ?? shift,
-    source = data.employees.find((e) => e.id === savedShift.employeeId);
-  return (
-    <Modal
-      title="Find Shift Cover"
-      description={`${source?.name} · ${savedShift.date} · ${time(savedShift.start)}–${time(savedShift.end)}`}
-      onClose={onClose}
-    >
-      <div className="help-content cover-content">
-        <div className="cover-preview-note">
-          <UserRoundSearch size={18} />
-          <span>
-            <strong>Eligibility preview · no change is applied</strong>
-            <small>
-              Checks the saved shift. Employee offers and manager approval are
-              planned for milestone 4. Strobbo is not connected.
-            </small>
-          </span>
-        </div>
-        <ErrorBox error={error} />
-        {loading ? (
-          <p role="status">Checking all configured mandatory rules…</p>
-        ) : error ? (
-          <button className="btn" onClick={() => setRetry((v) => v + 1)}>
-            <RefreshCw size={14} />
-            Retry checks
-          </button>
-        ) : (
-          <>
-            <button
-              className="text-link"
-              onClick={() => {
-                reload();
-                setRetry((v) => v + 1);
-              }}
-            >
-              <RefreshCw size={13} />
-              Refresh eligibility checks
-            </button>
-            <div className="cover-section-heading">
-              <h3>{eligible.length} eligible for configured rules</h3>
-              <Badge tone="neutral">
-                Roster revision {assessment?.revision}
-              </Badge>
-            </div>
-            <p className="form-hint">
-              Hard checks: availability, overlaps, duties, team skills,
-              supervision, rest, and individual hour limits. Eligible people are
-              ranked by closeness to preferred weekly hours.
-            </p>
-            {stale && (
-              <ErrorBox error="The workspace changed. Refresh checks before using any result." />
-            )}
-            {eligible.length === 0 && (
-              <div className="cover-no-match">
-                <AlertTriangle size={19} />
-                <p>
-                  No eligible cover found. Review the reasons below; preferences
-                  never override mandatory rules.
-                </p>
-              </div>
-            )}
-            {eligible.map((c) => {
-              const e = data.employees.find((e) => e.id === c.employeeId)!;
-              return (
-                <article className="cover-candidate" key={c.employeeId}>
-                  <div className="person-cell">
-                    <Avatar employee={e} />
-                    <div>
-                      <strong>{e.name}</strong>
-                      <SkillBadges employee={e} compact />
-                    </div>
-                    <Badge>Eligible</Badge>
-                  </div>
-                  <p>
-                    {c.scheduledHours}h scheduled → {c.proposedHours}h with this
-                    shift · {c.preferredHours}h preferred
-                  </p>
-                  <span className="skill-clear">
-                    All affected configured mandatory checks passed.
-                  </span>
-                </article>
-              );
-            })}
-            <button
-              className="blocked-toggle"
-              onClick={() => setShowBlocked(!showBlocked)}
-              aria-expanded={showBlocked}
-            >
-              {showBlocked ? "Hide" : "Show"} {blocked.length} ineligible
-              candidates <AlertTriangle size={14} />
-            </button>
-            {showBlocked &&
-              blocked.map((c) => {
-                const e = data.employees.find((e) => e.id === c.employeeId)!;
-                return (
-                  <article
-                    className="cover-candidate blocked"
-                    key={c.employeeId}
-                  >
-                    <div className="person-cell">
-                      <Avatar employee={e} small />
-                      <strong>{e.name}</strong>
-                      <Badge tone="peach">Ineligible</Badge>
-                    </div>
-                    <p>
-                      {c.scheduledHours}h scheduled · {c.preferredHours}h
-                      preferred
-                    </p>
-                    <details>
-                      <summary>
-                        {c.reasons[0]}
-                        {c.reasons.length > 1
-                          ? ` (+${c.reasons.length - 1} more)`
-                          : ""}
-                      </summary>
-                      <ul className="skill-issue-list">
-                        {c.reasons.slice(1).map((reason, i) => (
-                          <li key={i}>{reason}</li>
-                        ))}
-                      </ul>
-                    </details>
-                  </article>
-                );
-              })}
-            <p className="form-hint">
-              Assessment uses current saved data. A future approval must
-              revalidate fresh schedule, qualifications and rules atomically.
-              This preview is not approval or legal compliance certification.
-            </p>
-          </>
-        )}
-        <div className="modal-actions">
-          <button className="btn" onClick={onClose}>
-            Close preview
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
 export function SkillRulesPanel() {
   const { data } = useApp(),
     [editing, setEditing] = useState(false);
@@ -496,8 +346,8 @@ export function SkillRulesPanel() {
     <section className="panel">
       <div className="panel-heading">
         <div>
-          <h2>The skills every good shift needs</h2>
-          <p>Restaurant-level mandatory coverage and supervision rules.</p>
+          <h2>Staffing rules</h2>
+          <p>Skills that must be on shift, and how many trainees one person can supervise.</p>
         </div>
         <button className="btn small" onClick={() => setEditing(true)}>
           Edit skill rules
@@ -559,8 +409,8 @@ function SkillRulesDialog({ onClose }: { onClose: () => void }) {
   }
   return (
     <Modal
-      title="Skills, with clear ground rules"
-      description="Local demo manager · Changes are audited and may reveal draft gaps."
+      title="Edit staffing rules"
+      description="Changes are recorded and may reveal gaps in existing rosters."
       onClose={onClose}
     >
       <form className="editor-form" onSubmit={save}>

@@ -68,6 +68,17 @@ export interface LocalNotification {
   readBy: string[];
   channel: "in-app-only";
 }
+/** One mandatory-check finding from the independent engine validator.
+ * `preExisting` is true when the same finding is already present on the
+ * current saved roster, i.e. it was not caused by the proposed change. */
+export interface CandidateIssue {
+  code: string;
+  message: string;
+  day?: string;
+  minute?: number;
+  employeeId?: string;
+  preExisting: boolean;
+}
 export interface CoverOption {
   employeeId: string;
   name: string;
@@ -77,6 +88,11 @@ export interface CoverOption {
   preferredHours: number;
   canClose: boolean;
   canSupervise: boolean;
+  /** Structured findings behind `reasons` (additive; may be absent on older servers). */
+  issues?: CandidateIssue[];
+  role?: string;
+  skillsReviewed?: boolean;
+  maxHours?: number;
 }
 export interface SwapOption {
   shift: Shift;
@@ -84,6 +100,19 @@ export interface SwapOption {
   employeeName: string;
   eligible: boolean;
   reasons: string[];
+  issues?: CandidateIssue[];
+  canClose?: boolean;
+  skillsReviewed?: boolean;
+}
+/** Read-only preflight of a stored request against the current roster. */
+export interface RequestAssessment {
+  requestId: string;
+  revision: number;
+  valid: boolean;
+  /** False when the referenced shift(s) changed since the request was made. */
+  sourcesCurrent: boolean;
+  issues: CandidateIssue[];
+  weeks: string[];
 }
 export interface PortalData {
   actor: DemoActor;

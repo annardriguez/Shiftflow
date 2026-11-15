@@ -7,6 +7,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 import type { DemoActor } from "@/lib/workforce-types";
 import type { Mutation, Workspace } from "@/lib/types";
 import { BASE_WEEK } from "@/lib/schedule";
@@ -28,7 +29,7 @@ interface Context {
   week: string;
   setWeek: (v: string) => void;
   mutate: (m: Mutation) => Promise<void>;
-  notify: (s: string) => void;
+  notify: (s: string, tone?: "success" | "error") => void;
   reload: () => void;
 }
 const AppContext = createContext<Context | null>(null);
@@ -47,7 +48,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [error, setError] = useState(""),
     [saving, setSaving] = useState(false),
     [week, setWeek] = useState(BASE_WEEK),
-    [toast, setToast] = useState("");
+    [toast, setToastState] = useState<{
+      message: string;
+      tone: "success" | "error";
+      id: number;
+    } | null>(null);
+  const setToast = useCallback(
+    (message: string, tone: "success" | "error" = "success") =>
+      setToastState(
+        message ? { message, tone, id: Date.now() + Math.random() } : null,
+      ),
+    [],
+  );
   const reload = useCallback(() => {
     fetch("/api/session")
       .then(async (r) => {
@@ -82,7 +94,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const value = await response.json();
     if (!response.ok) throw new Error(value.error);
     window.location.assign(
-      value.role === "manager" ? "/requests" : "/employee",
+      value.role === "manager" ? "/" : "/employee",
     );
   }
   async function signOut() {
@@ -94,7 +106,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(reload, [reload]);
   useEffect(() => {
     if (toast) {
-      const t = setTimeout(() => setToast(""), 4500);
+      const t = setTimeout(() => setToastState(null), 4500);
       return () => clearTimeout(t);
     }
   }, [toast]);
@@ -113,7 +125,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         throw new Error(body.error);
       }
       setData(body);
-      setToast("Changes saved to this workspace.");
+      setToast("Changes saved");
     } finally {
       setSaving(false);
     }
@@ -138,12 +150,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-      {toast && (
-        <div className="toast" role="status">
-          <span className="status-dot" />
-          {toast}
-        </div>
-      )}
+      <div className="toast-region" role="status" aria-live="polite">
+        {toast && (
+          <div
+            key={toast.id}
+            className={`toast ${toast.tone === "error" ? "error" : ""}`}
+          >
+            {toast.tone === "error" ? (
+              <AlertCircle size={17} />
+            ) : (
+              <CheckCircle2 size={17} />
+            )}
+            {toast.message}
+          </div>
+        )}
+      </div>
     </AppContext.Provider>
   );
 }

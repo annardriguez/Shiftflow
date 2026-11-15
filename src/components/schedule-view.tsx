@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Plus,
   Download,
@@ -10,13 +11,18 @@ import {
   AlertTriangle,
   Trash2,
   Check,
-  ArrowRight,
   Clock3,
+  ArrowLeftRight,
+  CheckCircle2,
+  PenLine,
+  ChevronRight,
 } from "lucide-react";
 import { useApp } from "./provider";
 import {
   Avatar,
   Badge,
+  Callout,
+  EmptyState,
   ErrorBox,
   LoadGuard,
   Modal,
@@ -35,12 +41,29 @@ import {
   paidHours,
   time,
 } from "@/lib/schedule";
-import type { Shift, ShiftKind, Workspace } from "@/lib/types";
-import { SkillBadges, SkillCoverage, CoverDialog } from "./skills";
+import type { Shift, ShiftKind } from "@/lib/types";
+import { SkillBadges, SkillCoverage } from "./skills";
 import { skillDiagnostics } from "@/lib/skills";
-import { Planner } from "./planner";
+import { ReplacementFinder, ShiftHero } from "./replacement";
+import { RequestStatusPill } from "./requests";
 import { exportRoster } from "@/lib/download";
+import { statusMeta } from "@/lib/swap-insights";
+import { dayOfMonth, hours, longDate, plural, today } from "@/lib/format";
+import type { ShiftRequest } from "@/lib/workforce-types";
 export { exportRoster } from "@/lib/download";
+
+export function useNarrow(px = 760) {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia(`(max-width: ${px}px)`);
+    const set = () => setNarrow(m.matches);
+    set();
+    m.addEventListener("change", set);
+    return () => m.removeEventListener("change", set);
+  }, [px]);
+  return narrow;
+}
+
 export function Schedule() {
   return (
     <LoadGuard>
@@ -48,159 +71,165 @@ export function Schedule() {
     </LoadGuard>
   );
 }
+
 function ScheduleContent() {
   const { data, week } = useApp(),
+    narrow = useNarrow(),
     [query, setQuery] = useState(""),
     [role, setRole] = useState("all"),
-    [view, setView] = useState<"week" | "list">("week"),
-    [dialog, setDialog] = useState<{
-      shift?: Shift;
-      employeeId?: string;
-      day?: number;
-    } | null>(null),
-    [smart, setSmart] = useState(false);
+    [view, setView] = useState<"week" | "list" | null>(null),
+    [dialog, setDialog] = useState<{ shift?: Shift; employeeId?: string; day?: number } | null>(null);
   if (!data) return null;
+  const mode = view ?? (narrow ? "list" : "week");
   const roster = getWeek(data, week),
     m = metrics(roster, data),
+    t = today(),
     people = data.employees.filter(
-      (e) =>
-        e.name.toLowerCase().includes(query.toLowerCase()) &&
-        (role === "all" || e.role === role),
+      (e) => e.name.toLowerCase().includes(query.toLowerCase()) && (role === "all" || e.role === role),
     );
-  const skillIssues = skillDiagnostics(
-    data,
-    roster.shifts,
-    DAYS.map((_, i) => dateAt(week, i)),
-  ).issues;
+  const dates = DAYS.map((_, i) => dateAt(week, i));
+  const skillIssues = skillDiagnostics(data, roster.shifts, dates).issues;
+  const issuesByDay = dates.map((d) => skillIssues.filter((i) => i.date === d).length);
+  const gapsByDay = dates.map((_, i) => m.gaps.filter((g) => g.day === i).length);
+  const activeRequests = (data.requests ?? []).filter(
+    (r): r is ShiftRequest => (r.kind === "cover" || r.kind === "swap") && statusMeta(r).active,
+  );
+  const requestFor = (id: string) =>
+    activeRequests.find((r) => r.shift.id === id || r.counterShift?.id === id);
+  const budget = roster.budgets.reduce((a, b) => a + b, 0);
+  const provenance = roster.provenance
+    ? `Generated (${roster.provenance.strategy.replaceAll("-", " ")})${roster.provenance.edited ? ", edited" : ""}`
+    : "Built manually";
   return (
     <>
-      <PageTitle
-        eyebrow="A GOOD WEEK STARTS HERE"
-        title="Make room for a great week."
-        description="A clear plan for your people. Flexibility for everything else."
-      >
+      <PageTitle title="Schedule" description={`${plural(roster.shifts.length, "shift")} this week · ${provenance}`}>
         <button className="btn" onClick={() => exportRoster(data, week)}>
-          <Download size={16} />
-          Export
+          <Download size={15} /> Export CSV
         </button>
+        <Link className="btn" href="/intelligence">
+          <Sparkles size={15} /> Generate week
+        </Link>
         <button className="btn primary" onClick={() => setDialog({})}>
-          <Plus size={16} />
-          Add shift
+          <Plus size={15} /> Add shift
         </button>
       </PageTitle>
-      <div className="schedule-topline">
-        <div className="flex-row">
-          <WeekPicker />
-          <Badge tone="sand">
-            {roster.provenance
-              ? "Saved engine draft"
-              : roster.validationPolicy
-                ? "Saved workflow draft"
-                : "Manual draft"}
-          </Badge>
+      <div className="stat-row">
+        <div className="stat">
+          <span className="stat-label">Scheduled hours</span>
+          <span className="stat-value">
+            <NumberValue value={m.hours} />
+            <small>/ {budget}h target</small>
+          </span>
+          <span className={`stat-note ${m.hours > budget ? "caution" : ""}`}>
+            {m.hours > budget ? `${hours(m.hours - budget)} over target` : `${hours(budget - m.hours)} under target`}
+          </span>
         </div>
-        <button className="btn smart-btn" onClick={() => setSmart(true)}>
-          <Sparkles size={16} />
-          Generate & compare
-        </button>
-      </div>
-      <div className="schedule-summary">
-        <span>
-          <Clock3 size={17} />
-          <strong>{m.hours}h</strong> scheduled
-        </span>
-        <span>
-          <span className="status-dot" />
-          {m.coverage}% target coverage
-        </span>
-        <span>
-          <AlertTriangle size={16} />
-          {m.gaps.length} intervals below target
-        </span>
-        <span className="auto-save">
-          <Check size={14} /> Draft changes save automatically
-        </span>
+        <div className="stat">
+          <span className="stat-label">Staffing coverage</span>
+          <span className="stat-value">
+            {m.coverage}
+            <small>%</small>
+          </span>
+          <span className={`stat-note ${m.gaps.length ? "caution" : "positive"}`}>
+            {m.gaps.length ? `${plural(m.gaps.length, "half-hour")} short of target` : "Every half-hour on target"}
+          </span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Skills & supervision</span>
+          <span className="stat-value">{skillIssues.length ? skillIssues.length : <CheckCircle2 size={22} color="var(--positive)" />}</span>
+          <span className={`stat-note ${skillIssues.length ? "negative" : "positive"}`}>
+            {skillIssues.length ? "issues to fix before approving swaps" : "All required skills covered"}
+          </span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Open swap requests</span>
+          <span className="stat-value">{activeRequests.filter((r) => dates.includes(r.shift.date)).length}</span>
+          <Link className="stat-note text-link" href="/requests" style={{ fontSize: 12 }}>
+            Open Swap Centre <ChevronRight size={12} />
+          </Link>
+        </div>
       </div>
       {skillIssues.length > 0 && (
-        <div className="skill-roster-alert" role="status">
-          <AlertTriangle size={18} />
-          <div>
-            <strong>
-              {skillIssues.length} mandatory skill / supervision checks need
-              attention
-            </strong>
-            <p>
-              {skillIssues[0].message} Open a shift for interval details and
-              Find Shift Cover.
-            </p>
-          </div>
-        </div>
+        <Callout tone="caution" title={`${plural(skillIssues.length, "skill or supervision issue")} this week`}>
+          {humanIssue(skillIssues[0].message)} Swaps that touch these days can’t be approved until they’re fixed. Days
+          with issues are marked in the roster.
+        </Callout>
       )}
-      {smart && <Planner key={week} onClose={() => setSmart(false)} />}
       <section className="panel schedule-panel">
         <div className="schedule-toolbar">
+          <WeekPicker />
           <div className="search-field">
-            <Search size={16} />
+            <Search size={15} />
             <input
-              placeholder="Find a team member…"
-              aria-label="Find a team member"
+              placeholder="Search team"
+              aria-label="Search team"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          <select
-            aria-label="Filter by role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
+          <select aria-label="Filter by role" value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="all">All roles</option>
             <option>Team member</option>
             <option>Shift leader</option>
           </select>
-          <div className="view-toggle">
-            <button
-              className={view === "week" ? "selected" : ""}
-              onClick={() => setView("week")}
-              aria-pressed={view === "week"}
-            >
-              <CalendarDays size={15} />
-              Week
+          <div className="view-toggle" role="group" aria-label="View">
+            <button className={mode === "week" ? "selected" : ""} onClick={() => setView("week")} aria-pressed={mode === "week"}>
+              <CalendarDays size={14} /> Week
             </button>
-            <button
-              className={view === "list" ? "selected" : ""}
-              onClick={() => setView("list")}
-              aria-pressed={view === "list"}
-            >
-              <List size={15} />
-              List
+            <button className={mode === "list" ? "selected" : ""} onClick={() => setView("list")} aria-pressed={mode === "list"}>
+              <List size={14} /> List
             </button>
           </div>
         </div>
-        {view === "week" ? (
+        {mode === "week" ? (
           <div className="roster-scroll">
             <table className="roster-table">
+              <colgroup>
+                <col className="person-col" />
+                {DAYS.map((d) => (
+                  <col key={d} />
+                ))}
+              </colgroup>
               <thead>
                 <tr>
                   <th>
-                    <span>YOUR TEAM</span>
-                    <small>{people.length} team members</small>
+                    <div className="person-head">
+                      <span>Team</span>
+                      <small>{plural(people.length, "person", "people")}</small>
+                    </div>
                   </th>
-                  {DAYS.map((d, i) => (
-                    <th key={d} className={i === 0 ? "highlight-col" : ""}>
-                      <span>
-                        {d.toUpperCase()}{" "}
-                        <b>
-                          {new Date(
-                            `${dateAt(week, i)}T12:00:00Z`,
-                          ).getUTCDate()}
-                        </b>
-                      </span>
-                      <small>
-                        <NumberValue value={dayHours(roster, i)} /> /{" "}
-                        {roster.budgets[i]} hrs
-                      </small>
-                    </th>
-                  ))}
+                  {DAYS.map((d, i) => {
+                    const isToday = dates[i] === t;
+                    const flagged = issuesByDay[i] + gapsByDay[i];
+                    return (
+                      <th key={d} className={isToday ? "is-today" : ""} aria-current={isToday ? "date" : undefined}>
+                        <div className="day-head">
+                          <div className="dh-top">
+                            <span>{d}</span>
+                            <b className={isToday ? "dh-today" : ""}>{dayOfMonth(dates[i])}</b>
+                          </div>
+                          <div className="dh-meta">
+                            <span>
+                              <NumberValue value={dayHours(roster, i)} />/{roster.budgets[i]}h
+                            </span>
+                            {issuesByDay[i] ? (
+                              <span className="dh-flag" title={`${issuesByDay[i]} skill or supervision issues`}>
+                                <AlertTriangle size={11} /> Skills
+                              </span>
+                            ) : flagged ? (
+                              <span className="dh-flag" title={`${gapsByDay[i]} half-hours below staffing target`}>
+                                <AlertTriangle size={11} /> Short
+                              </span>
+                            ) : roster.shifts.some((s) => s.date === dates[i]) ? (
+                              <span className="dh-flag ok">
+                                <Check size={11} /> Covered
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
@@ -213,48 +242,54 @@ function ScheduleContent() {
                           <strong>{e.name}</strong>
                           <SkillBadges employee={e} compact />
                           <small>
-                            <NumberValue value={employeeHours(roster, e.id)} />h
-                            / {e.preferredHours}h preferred
+                            <NumberValue value={employeeHours(roster, e.id)} />h of {e.preferredHours}h preferred
                           </small>
                         </div>
                       </div>
                     </td>
                     {DAYS.map((_, day) => {
-                      const ss = roster.shifts.filter(
-                          (s) =>
-                            s.employeeId === e.id &&
-                            s.date === dateAt(week, day),
-                        ),
-                        absent = e.absentDates.includes(dateAt(week, day));
+                      const date = dates[day];
+                      const ss = roster.shifts.filter((s) => s.employeeId === e.id && s.date === date),
+                        absent = e.absentDates.includes(date);
                       return (
-                        <td key={day}>
+                        <td key={day} className={date === t ? "is-today" : ""}>
                           {ss.length ? (
-                            ss.map((s) => (
-                              <button
-                                key={s.id}
-                                className={`roster-shift ${s.kind.toLowerCase()}`}
-                                onClick={() => setDialog({ shift: s })}
-                              >
-                                <strong>
-                                  {time(s.start)} – {time(s.end)}
-                                </strong>
-                                <span>
-                                  {s.kind}
-                                  <b>{paidHours(s)}h</b>
-                                </span>
-                              </button>
-                            ))
+                            ss.map((s) => {
+                              const req = requestFor(s.id);
+                              return (
+                                <button
+                                  key={s.id}
+                                  className={`roster-shift ${s.kind.toLowerCase()} ${req ? "has-request" : ""}`}
+                                  onClick={() => setDialog({ shift: s })}
+                                  aria-label={`${e.name}, ${longDate(date)}, ${time(s.start)} to ${time(s.end)}, ${s.kind}${req ? `, ${statusMeta(req).label}` : ""}`}
+                                >
+                                  <strong>
+                                    {time(s.start)}–{time(s.end)}
+                                  </strong>
+                                  <span>
+                                    {s.kind}
+                                    <b>{paidHours(s)}h</b>
+                                  </span>
+                                  {req && (
+                                    <span
+                                      className={`shift-flag ${req.status === "pending-manager" ? "" : "caution"}`}
+                                      title={statusMeta(req).label}
+                                    >
+                                      <ArrowLeftRight size={9} strokeWidth={3} />
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })
                           ) : absent ? (
                             <span className="off-label absence">Time off</span>
-                          ) : !availabilityOn(e, dateAt(week, day)) ? (
+                          ) : !availabilityOn(e, date) ? (
                             <span className="off-label">Unavailable</span>
                           ) : (
                             <button
                               className="add-cell"
-                              aria-label={`Add shift for ${e.name} on ${DAYS[day]}`}
-                              onClick={() =>
-                                setDialog({ employeeId: e.id, day })
-                              }
+                              aria-label={`Add shift for ${e.name} on ${longDate(date)}`}
+                              onClick={() => setDialog({ employeeId: e.id, day })}
                             >
                               <Plus size={15} />
                             </button>
@@ -268,94 +303,98 @@ function ScheduleContent() {
             </table>
           </div>
         ) : (
-          <div className="table-scroll">
-            <table className="team-table">
-              <thead>
-                <tr>
-                  <th>TEAM MEMBER</th>
-                  <th>DATE</th>
-                  <th>SHIFT</th>
-                  <th>PAID HOURS</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {roster.shifts
-                  .filter((s) => people.some((e) => e.id === s.employeeId))
-                  .sort(
-                    (a, b) => a.date.localeCompare(b.date) || a.start - b.start,
-                  )
-                  .map((s) => {
-                    const e = data.employees.find(
-                      (e) => e.id === s.employeeId,
-                    )!;
+          <div className="agenda">
+            {dates.map((date, i) => {
+              const ss = roster.shifts
+                .filter((s) => s.date === date && people.some((p) => p.id === s.employeeId))
+                .sort((a, b) => a.start - b.start);
+              return (
+                <div className="agenda-day" key={date}>
+                  <div className={`agenda-day-head ${date === t ? "today" : ""}`}>
+                    <span>
+                      {longDate(date)}
+                      {date === t && " · Today"}
+                    </span>
+                    <small>
+                      {plural(ss.length, "shift")} · <NumberValue value={dayHours(roster, i)} />/{roster.budgets[i]}h
+                      {issuesByDay[i] ? " · skills to fix" : ""}
+                    </small>
+                  </div>
+                  {!ss.length && (
+                    <p className="form-hint" style={{ padding: "10px 16px" }}>
+                      No shifts.
+                    </p>
+                  )}
+                  {ss.map((s) => {
+                    const e = data.employees.find((x) => x.id === s.employeeId)!;
+                    const req = requestFor(s.id);
                     return (
-                      <tr key={s.id}>
-                        <td>
-                          <div className="person-cell">
-                            <Avatar employee={e} small />
-                            {e.name}
+                      <button className="agenda-row" key={s.id} onClick={() => setDialog({ shift: s })}>
+                        <span className={`kind-bar ${s.kind.toLowerCase()}`} />
+                        <span className="when">
+                          <strong>
+                            {time(s.start)}–{time(s.end)}
+                          </strong>
+                          <small>
+                            {s.kind} · {paidHours(s)}h
+                          </small>
+                        </span>
+                        <span className="person-cell">
+                          <Avatar employee={e} small />
+                          <div>
+                            <strong>{e.name}</strong>
+                            <SkillBadges employee={e} compact />
                           </div>
-                        </td>
-                        <td>{s.date}</td>
-                        <td>
-                          {time(s.start)}–{time(s.end)} <Badge>{s.kind}</Badge>
-                        </td>
-                        <td>{paidHours(s)}h</td>
-                        <td>
-                          <button
-                            className="text-link"
-                            onClick={() => setDialog({ shift: s })}
-                          >
-                            Edit <ArrowRight size={14} />
-                          </button>
-                        </td>
-                      </tr>
+                        </span>
+                        {req ? <RequestStatusPill request={req} /> : <span />}
+                      </button>
                     );
                   })}
-              </tbody>
-            </table>
+                </div>
+              );
+            })}
           </div>
         )}
         {people.length === 0 && (
-          <div className="empty-state">
-            <Search size={25} />
-            <h3>No team members found</h3>
-            <p>Try a different name or role.</p>
-          </div>
+          <EmptyState icon={<Search size={20} />} title="No one matches">
+            Try a different name or role.
+          </EmptyState>
         )}
         <div className="panel-foot">
           <div className="shift-legend">
             <span>
-              <i className="shift-dot opening" />
-              Opening
+              <i className="shift-dot opening" /> Opening
             </span>
             <span>
-              <i className="shift-dot midday" />
-              Midday
+              <i className="shift-dot midday" /> Midday
             </span>
             <span>
-              <i className="shift-dot closing" />
-              Closing
+              <i className="shift-dot closing" /> Closing
+            </span>
+            <span>
+              <span className="shift-flag" style={{ position: "static", display: "inline-grid", placeItems: "center", width: 14, height: 14, borderRadius: "50%", background: "var(--accent)", color: "#fff" }}>
+                <ArrowLeftRight size={8} strokeWidth={3} />
+              </span>
+              Swap in progress
             </span>
           </div>
-          <span>Amsterdam time · Unpaid breaks excluded</span>
+          <span>Local time · unpaid breaks excluded · every edit is checked before saving</span>
         </div>
       </section>
-      <div className="info-box schedule-info">
-        <ShieldInfo />
-        Every edit is checked against confirmed availability, approved absences,
-        break rules, rest periods, and individual hour limits.
-      </div>
-      {dialog && (
-        <ShiftDialog {...dialog} onClose={() => setDialog(null)} />
-      )}{" "}
+      {dialog && <ShiftDialog {...dialog} onClose={() => setDialog(null)} />}
     </>
   );
 }
-function ShieldInfo() {
-  return <Check size={17} />;
+
+/** Make the client-side skill diagnostic messages read naturally. */
+export function humanIssue(message: string) {
+  return message
+    .replace(/needs (.+?) supervision; no capacity available\.?/i, "is in training and has no supervisor on shift.")
+    .replace(/not qualified to close independently\.?/i, "is scheduled to close but isn’t qualified to.")
+    .replace(/skill profile needs manager review\.?/i, "is scheduled before their skills were verified.")
+    .replace(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}): /, (_, d: string, t: string) => `${longDate(d)} at ${t}: `);
 }
+
 export function ShiftDialog({
   shift,
   employeeId,
@@ -367,10 +406,11 @@ export function ShiftDialog({
   day?: number;
   onClose: () => void;
 }) {
-  const { data, week, mutate, saving } = useApp();
+  const { data, week, mutate, saving, notify, reload } = useApp();
   const [error, setError] = useState(""),
     [confirmDelete, setConfirmDelete] = useState(false),
-    [cover, setCover] = useState(false);
+    [finder, setFinder] = useState(false),
+    [editing, setEditing] = useState(!shift);
   const [form, setForm] = useState<Shift>(
     () =>
       shift ?? {
@@ -387,11 +427,20 @@ export function ShiftDialog({
   if (!data) return null;
   const employee = data.employees.find((e) => e.id === form.employeeId),
     a = employee ? availabilityOn(employee, form.date) : null;
+  const req = shift
+    ? (data.requests ?? []).find(
+        (r): r is ShiftRequest =>
+          (r.kind === "cover" || r.kind === "swap") &&
+          statusMeta(r).active &&
+          (r.shift.id === shift.id || r.counterShift?.id === shift.id),
+      )
+    : undefined;
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     try {
       await mutate({ type: "shift", week, shift: form });
+      notify(shift ? "Shift updated" : "Shift added");
       onClose();
     } catch (e) {
       setError((e as Error).message);
@@ -400,6 +449,7 @@ export function ShiftDialog({
   async function remove() {
     try {
       await mutate({ type: "delete-shift", week, id: form.id });
+      notify("Shift removed");
       onClose();
     } catch (e) {
       setError((e as Error).message);
@@ -409,191 +459,199 @@ export function ShiftDialog({
     const [h, m] = v.split(":").map(Number);
     setForm({ ...form, [key]: h * 60 + m });
   }
-  if (cover && shift)
-    return <CoverDialog shift={shift} onClose={() => setCover(false)} />;
+  if (finder && shift)
+    return (
+      <ReplacementFinder
+        shift={shift}
+        week={week}
+        ownerName={employee?.name}
+        recording={{ requesterId: shift.employeeId }}
+        onClose={() => setFinder(false)}
+        onDone={(message) => {
+          notify(message);
+          reload();
+          onClose();
+        }}
+      />
+    );
   return (
     <Modal
-      title={shift ? "A little adjustment" : "Add a shift"}
-      description="Build your draft, one good shift at a time."
+      title={shift ? "Shift" : "Add a shift"}
+      description={shift ? undefined : "Every shift is checked against availability, rest and hour limits when you save."}
       onClose={onClose}
+      variant="drawer"
     >
       <form onSubmit={save} className="editor-form">
+        {shift && (
+          <>
+            <ShiftHero shift={shift} />
+            {employee && (
+              <div className="person-cell">
+                <Avatar employee={employee} />
+                <div>
+                  <strong>{employee.name}</strong>
+                  <SkillBadges employee={employee} />
+                </div>
+              </div>
+            )}
+            {req && (
+              <Callout tone="accent" title="A swap is in progress for this shift">
+                <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <RequestStatusPill request={req} />
+                  <Link className="text-link" href="/requests">
+                    Review in Swap Centre <ChevronRight size={12} />
+                  </Link>
+                </span>
+              </Callout>
+            )}
+            <div className="flex-row">
+              <button type="button" className="btn" onClick={() => setFinder(true)}>
+                <PenLine size={15} /> Record agreed swap
+              </button>
+              {!editing && (
+                <button type="button" className="btn" onClick={() => setEditing(true)}>
+                  Edit times
+                </button>
+              )}
+            </div>
+            <SkillCoverage shift={form} />
+          </>
+        )}
         <ErrorBox error={error} />
-        <label>
-          Team member
-          <select
-            value={form.employeeId}
-            onChange={(e) => setForm({ ...form, employeeId: e.target.value })}
-          >
-            {data.employees.map((e) => (
-              <option value={e.id} key={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="form-row">
-          <label>
-            Date
-            <select
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-            >
-              {DAYS.map((d, i) => (
-                <option key={d} value={dateAt(week, i)}>
-                  {d}, {dateAt(week, i)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Shift type
-            <select
-              value={form.kind}
-              onChange={(e) =>
-                setForm({ ...form, kind: e.target.value as ShiftKind })
-              }
-            >
-              <option>Opening</option>
-              <option>Midday</option>
-              <option>Closing</option>
-            </select>
-          </label>
-        </div>
-        <div className="form-row">
-          <label>
-            Start time
-            <input
-              type="time"
-              step="1800"
-              required
-              value={time(form.start)}
-              onChange={(e) => setTime("start", e.target.value)}
-            />
-          </label>
-          <label>
-            End time
-            <input
-              type="time"
-              step="1800"
-              required
-              value={time(form.end)}
-              onChange={(e) => setTime("end", e.target.value)}
-            />
-          </label>
-        </div>
-        <div className="form-row">
-          <label>
-            Unpaid break
-            <select
-              value={form.breakMinutes}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  breakMinutes: Number(e.target.value),
-                  breakStart: Number(e.target.value)
-                    ? (form.breakStart ?? form.start + 180)
-                    : null,
-                })
-              }
-            >
-              <option value={0}>No break</option>
-              <option value={30}>30 minutes</option>
-              <option value={60}>60 minutes</option>
-            </select>
-          </label>
-          {form.breakMinutes > 0 && (
+        {editing && (
+          <>
             <label>
-              Break starts
-              <input
-                type="time"
-                step="1800"
-                required
-                value={time(form.breakStart ?? form.start)}
-                onChange={(e) => setTime("breakStart", e.target.value)}
-              />
+              Team member
+              <select value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })}>
+                {data.employees.map((e) => (
+                  <option value={e.id} key={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
             </label>
-          )}
-        </div>
-        <div className="shift-preview">
-          <div>
-            <Clock3 size={17} />
-            <strong>{Math.max(0, paidHours(form))} paid hours</strong>
-          </div>
-          <p>
-            {a
-              ? `Confirmed availability: ${time(a.start)}–${time(a.end)}`
-              : "Not available on this day"}
-            {employee?.absentDates.includes(form.date)
-              ? " · Approved absence"
-              : ""}
-          </p>
-        </div>
-        <fieldset className="skill-checklist">
-          <legend>Additional personal duties for this shift</legend>
-          {data.restaurant.skillRules.catalog.map((k) => (
-            <label key={k.id} className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={(form.requiredSkillIds ?? []).includes(k.id)}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    requiredSkillIds: e.target.checked
-                      ? [...(form.requiredSkillIds ?? []), k.id]
-                      : (form.requiredSkillIds ?? []).filter(
-                          (id) => id !== k.id,
-                        ),
-                  })
-                }
-              />
-              {k.name}
-            </label>
-          ))}
-        </fieldset>
-        <SkillCoverage shift={form} />
-        {shift && (
-          <button
-            type="button"
-            className="btn full-width"
-            onClick={() => setCover(true)}
-          >
-            Find Shift Cover <ArrowRight size={15} />
-          </button>
+            <div className="form-row">
+              <label>
+                Day
+                <select value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })}>
+                  {DAYS.map((d, i) => (
+                    <option key={d} value={dateAt(week, i)}>
+                      {longDate(dateAt(week, i))}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Shift type
+                <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as ShiftKind })}>
+                  <option>Opening</option>
+                  <option>Midday</option>
+                  <option>Closing</option>
+                </select>
+              </label>
+            </div>
+            <div className="form-row">
+              <label>
+                Starts
+                <input type="time" step="1800" required value={time(form.start)} onChange={(e) => setTime("start", e.target.value)} />
+              </label>
+              <label>
+                Ends
+                <input type="time" step="1800" required value={time(form.end)} onChange={(e) => setTime("end", e.target.value)} />
+              </label>
+            </div>
+            <div className="form-row">
+              <label>
+                Unpaid break
+                <select
+                  value={form.breakMinutes}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      breakMinutes: Number(e.target.value),
+                      breakStart: Number(e.target.value) ? (form.breakStart ?? form.start + 180) : null,
+                    })
+                  }
+                >
+                  <option value={0}>No break</option>
+                  <option value={30}>30 minutes</option>
+                  <option value={60}>60 minutes</option>
+                </select>
+              </label>
+              {form.breakMinutes > 0 && (
+                <label>
+                  Break starts
+                  <input type="time" step="1800" required value={time(form.breakStart ?? form.start)} onChange={(e) => setTime("breakStart", e.target.value)} />
+                </label>
+              )}
+            </div>
+            <div className="detail-list">
+              <div>
+                <span className="k">
+                  <Clock3 size={13} style={{ verticalAlign: -2 }} /> Paid hours
+                </span>
+                <span className="v">{hours(Math.max(0, paidHours(form)))}</span>
+              </div>
+              <div>
+                <span className="k">{employee?.name.split(" ")[0]}’s availability</span>
+                <span className="v" style={!a ? { color: "var(--negative)" } : undefined}>
+                  {employee?.absentDates.includes(form.date)
+                    ? "Approved time off"
+                    : a
+                      ? `${time(a.start)}–${time(a.end)}`
+                      : "Not available"}
+                </span>
+              </div>
+            </div>
+            <details className="disclosure">
+              <summary>Extra duties for this shift</summary>
+              <div className="skill-checklist" style={{ display: "grid", gap: 8 }}>
+                {data.restaurant.skillRules.catalog.map((k) => (
+                  <label key={k.id} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={(form.requiredSkillIds ?? []).includes(k.id)}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          requiredSkillIds: e.target.checked
+                            ? [...(form.requiredSkillIds ?? []), k.id]
+                            : (form.requiredSkillIds ?? []).filter((id) => id !== k.id),
+                        })
+                      }
+                    />
+                    {k.name}
+                  </label>
+                ))}
+              </div>
+            </details>
+            {!shift && <SkillCoverage shift={form} />}
+            <p className="form-hint">
+              Rules in this workspace: 11 hours’ rest between shifts and a 30-minute break after 5.5 hours. These are
+              defaults to confirm against your employment agreements.
+            </p>
+          </>
         )}
-        {shift && (
-          <p className="form-hint">
-            Cover preview uses the last saved shift. Save your edits first to
-            assess a changed shift.
-          </p>
-        )}
-        <p className="form-hint">
-          Demo rules: 11h minimum rest; 30-minute break after 5.5h. These are
-          configurable prototype defaults requiring employment-law review.
-        </p>
         <div className="modal-actions">
           {shift && (
-            <button
-              type="button"
-              className="btn danger"
-              disabled={saving}
-              onClick={() =>
-                confirmDelete ? remove() : setConfirmDelete(true)
-              }
-            >
+            <button type="button" className="btn danger" disabled={saving} onClick={() => (confirmDelete ? remove() : setConfirmDelete(true))}>
               <Trash2 size={15} />
-              {confirmDelete ? "Confirm removal" : "Remove"}
+              {confirmDelete ? "Confirm remove" : "Remove"}
             </button>
           )}
           <button type="button" className="btn" onClick={onClose}>
-            Cancel
+            {editing ? "Cancel" : "Close"}
           </button>
-          <button className="btn primary" disabled={saving} type="submit">
-            {saving ? "Saving…" : "Save shift"}
-            <Check size={15} />
-          </button>
+          {editing && (
+            <button className="btn primary" disabled={saving} type="submit" aria-busy={saving}>
+              <Check size={15} />
+              {saving ? "Saving…" : shift ? "Save changes" : "Add shift"}
+            </button>
+          )}
         </div>
       </form>
     </Modal>
   );
 }
+
+

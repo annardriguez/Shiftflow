@@ -347,6 +347,50 @@ test(
       },
     );
     await t.test(
+      "read-only assessment mirrors approval checks, is scoped, and never writes",
+      async () => {
+        await fixture();
+        await login("emp-1");
+        const cands = await (
+          await fetch(`${base}/api/workforce?view=candidates&week=${WEEK}&shiftId=open-0`)
+        ).json();
+        const blocked = cands.options.find((o: any) => o.employeeId === "emp-3");
+        assert.ok(Array.isArray(blocked.issues) && blocked.issues.length);
+        assert.ok(blocked.issues.every((i: any) => typeof i.preExisting === "boolean"));
+        assert.deepEqual(
+          cands.options.find((o: any) => o.employeeId === "emp-2").issues,
+          [],
+        );
+        const r = await accept(await create());
+        await login("demo-manager");
+        const before = await h.storedWorkspace();
+        const assess = async () =>
+          fetch(`${base}/api/workforce?view=assessment&id=${r.id}`);
+        let res = await assess();
+        let body = await res.json();
+        assert.equal(res.status, 200, JSON.stringify(body));
+        assert.equal(body.valid, true);
+        assert.equal(body.sourcesCurrent, true);
+        assert.deepEqual(await h.storedWorkspace(), before);
+        await login("emp-3");
+        assert.equal((await assess()).status, 403);
+        await login("demo-manager");
+        const w = await get();
+        const availability = [...w.employees[1].availability];
+        availability[0] = null;
+        assert.equal(
+          (await post({ type: "availability", employeeId: "emp-2", availability })).status,
+          200,
+        );
+        body = await (await assess()).json();
+        assert.equal(body.valid, false);
+        const introduced = body.issues.filter((i: any) => !i.preExisting);
+        assert.ok(introduced.some((i: any) => i.code === "availability" && i.employeeId === "emp-2"));
+        // The preflight and the real approval agree.
+        assert.equal((await approve(r)).status, 422);
+      },
+    );
+    await t.test(
       "trainee replacing only independent opener is never labelled eligible",
       async () => {
         await fixture();

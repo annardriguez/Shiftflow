@@ -6,7 +6,13 @@ import { ZodError } from "zod";
 import { localOnly } from "@/lib/http";
 import { requireActor, AccessError } from "@/lib/session";
 import { readWorkspace } from "@/lib/store";
-import { commandSchema, command, portal, replacements } from "@/lib/workforce";
+import {
+  commandSchema,
+  command,
+  portal,
+  replacements,
+  assess,
+} from "@/lib/workforce";
 import { RevisionError, ValidationError } from "@/lib/mutations";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,6 +56,11 @@ async function handleGET(request: Request) {
         params.get("shiftId") ?? "",
         mode as "cover" | "swap",
       );
+    } else if (params.get("view") === "assessment") {
+      const id = params.get("id") ?? "";
+      if (!/^[0-9a-f-]{36}$/i.test(id))
+        throw new ValidationError("Unknown request.");
+      result = await assess(actor, id);
     } else if (actor.role === "employee") result = await portal(actor);
     else {
       const w = await readWorkspace();

@@ -18,6 +18,8 @@ import type {
   PortalData,
   CoverOption,
   SwapOption,
+  CandidateIssue,
+  RequestAssessment,
 } from "./workforce-types";
 const date = z
   .string()
@@ -232,6 +234,61 @@ async function check(w: Workspace, r: WorkforceRequest) {
     issues.push(...report.issues);
   }
   return { next, touched, valid: issues.length === 0, issues };
+}
+type EngineIssue = Report["issues"][number];
+function issueKey(i: EngineIssue) {
+  return [i.code, i.day ?? "", i.minute ?? "", i.employee_id ?? "", i.message].join("|");
+}
+async function validateWeek(w: Workspace, start: string) {
+  const snapshot = await engine("workspace-snapshot", {
+    fictional_data: true,
+    rules_verified_for_demo: true,
+    workspace: engineWorkspace(w),
+    week_start: start,
+  });
+  const report = await engine<Report>("validate", {
+    snapshot,
+    assignments: toAssignments(getWeek(w, start).shifts),
+  });
+  return report.issues;
+}
+/** Issues already present on the saved roster, cached per week for one read. */
+function baselineCache(w: Workspace) {
+  const cache = new Map<string, Promise<Set<string>>>();
+  return (start: string) => {
+    if (!cache.has(start))
+      cache.set(
+        start,
+        validateWeek(w, start).then((issues) => new Set(issues.map(issueKey))),
+      );
+    return cache.get(start)!;
+  };
+}
+/** Annotate engine findings with whether the saved roster already had them. */
+async function annotate(
+  issues: EngineIssue[],
+  touched: string[],
+  baseline: (start: string) => Promise<Set<string>>,
+): Promise<CandidateIssue[]> {
+  const known = new Set<string>();
+  for (const start of touched)
+    for (const k of await baseline(start)) known.add(k);
+  const seen = new Set<string>();
+  return issues
+    .filter((i) => {
+      const k = issueKey(i);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .map((i) => ({
+      code: i.code,
+      message: i.message,
+      ...(i.day ? { day: i.day } : {}),
+      ...(i.minute !== undefined && i.minute !== null ? { minute: i.minute } : {}),
+      ...(i.employee_id ? { employeeId: i.employee_id } : {}),
+      preExisting: known.has(issueKey(i)),
+    }));
 }
 function assertValid(report: { valid: boolean; issues: Report["issues"] }) {
   if (!report.valid)
@@ -640,6 +697,7 @@ export async function replacements(
     role: "employee" as const,
   };
   const options: (CoverOption | SwapOption)[] = [];
+  const baseline = baselineCache(w);
   if (mode === "cover")
     for (const e of w.employees.filter((e) => e.id !== owner.id)) {
       const r = makeShift(w, owner, {
@@ -663,6 +721,12 @@ export async function replacements(
         preferredHours: e.preferredHours,
         canClose: qualified(e, "close"),
         canSupervise: qualified(e, "train") && !e.supervisionSkillId,
+        issues: result.valid
+          ? []
+          : await annotate(result.issues, result.touched, baseline),
+        role: e.role,
+        skillsReviewed: Boolean(e.skillsReviewedAt),
+        maxHours: e.maxHours,
       });
     }
   else
@@ -691,6 +755,16 @@ export async function replacements(
           reasons: [
             ...new Set(result.issues.map((i) => `${i.day ?? ""} ${i.message}`)),
           ],
+          issues: result.valid
+            ? []
+            : await annotate(result.issues, result.touched, baseline),
+          canClose: qualified(
+            w.employees.find((e) => e.id === s.employeeId)!,
+            "close",
+          ),
+          skillsReviewed: Boolean(
+            w.employees.find((e) => e.id === s.employeeId)!.skillsReviewedAt,
+          ),
         });
       }
   options.sort(
@@ -716,5 +790,51 @@ export async function replacements(
     scope:
       "Entire proposed roster and adjacent stored weeks; availability, qualification, supervision, rest, breaks, working-time rules. Hour preferences rank eligible covers only.",
     externalSync: "not_connected",
+  };
+}
+
+/**
+ * Read-only preflight: re-run the same mandatory checks approval would run,
+ * against the current roster, without writing anything. Approval still
+ * revalidates inside its own transaction; this result is never authority.
+ */
+export async function assess(
+  actor: DemoActor,
+  id: string,
+): Promise<RequestAssessment> {
+  const w = await readWorkspace();
+  actorExists(w, actor);
+  const r = (w.requests ?? []).find((q) => q.id === id);
+  if (!r) throw new ValidationError("Request does not exist.");
+  if (
+    actor.role !== "manager" &&
+    r.requesterId !== actor.id &&
+    !("targetEmployeeId" in r && r.targetEmployeeId === actor.id)
+  )
+    throw new AccessError("This request is not addressed to you.");
+  if ("targetEmployeeId" in r) {
+    try {
+      requireSources(w, r);
+    } catch {
+      return {
+        requestId: r.id,
+        revision: w.revision,
+        valid: false,
+        sourcesCurrent: false,
+        issues: [],
+        weeks: [],
+      };
+    }
+  }
+  const result = await check(w, r);
+  return {
+    requestId: r.id,
+    revision: w.revision,
+    valid: result.valid,
+    sourcesCurrent: true,
+    issues: result.valid
+      ? []
+      : await annotate(result.issues, result.touched, baselineCache(w)),
+    weeks: result.touched,
   };
 }
