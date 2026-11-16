@@ -4491,3 +4491,19 @@ main.page { gap: 26px; padding: 36px 36px 60px; }
   main.page:has(> .swap-layout.request-open) > .page-title,
   main.page:has(> .swap-layout.request-open) > .secondary-section { display: none; }
 }
+/* Home is a daily list, independent of the weekly planning screens. */
+.home-shifts { display: grid; }
+.home-shift { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 24px; text-align: left; border-top: 1px solid var(--line); }
+.home-shift:hover { background: var(--surface-2); }
+.home-shift > span:first-child { min-width: 0; display: grid; gap: 7px; }
+.home-shift strong { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.home-shift small { font-size: 12px; line-height: 1.6; color: var(--muted); }
+.home-shift-time { white-space: nowrap; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.home-quiet { margin: 0; padding: 0 24px 24px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.home-shift-warning { display: flex; gap: 8px; align-items: center; margin: 0 20px 20px; padding: 14px; border-radius: var(--r-md); background: var(--negative-soft); color: var(--negative); font-size: 12px; }
+[aria-label="Swaps to approve"] .attention-item { grid-template-columns: minmax(0, 1fr) auto; }
+@media (max-width: 640px) {
+  .home-shift { padding: 22px 20px; gap: 12px; }
+  .home-shift-time { font-size: 12px; }
+  .home-quiet { padding: 0 20px 24px; }
+}
