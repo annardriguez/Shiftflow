@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="ShiftFlow: smarter shifts, simpler swaps. An interactive tour of the prototype.">
+<meta name="theme-color" content="#f6f7f9">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%2317212f'/%3E%3Cpath d='M14 46 28 16M30 50 44 20M46 46 54 30' stroke='%23fff' stroke-width='8' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<title>ShiftFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: three focused tabs (the swap tour, who can close, the manager's screens); one idea per screen. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f7;
+  --ink: #17212f;
+  --ink-2: #3a4657;
+  --muted: #6a7789;
+  --line: #e3e7ed;
+  --accent: #315ce7;
+  --accent-ink: #ffffff;
+  --accent-soft: #edf1fe;
+  --positive: #18794e;
+  --positive-soft: #e7f5ee;
+  --caution: #9a5b00;
+  --caution-soft: #fdf3e1;
+  --closing: #5a4fd0;
+  --closing-soft: #f0effd;
+  --frame: #0f1520;
+  --shadow: 0 1px 2px rgb(16 24 40 / .05), 0 18px 40px -16px rgb(16 24 40 / .25);
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131b; --surface: #161d28; --surface-2: #1c2431; --ink: #eef2f7; --ink-2: #c8d0db; --muted: #93a0b1; --line: #263041;
+    --accent: #7d9bff; --accent-ink: #0e131b; --accent-soft: #1b2645; --positive: #5fd39b; --positive-soft: #12291f;
+    --caution: #f0b65a; --caution-soft: #2e2413; --closing: #a8a1ff; --closing-soft: #221f43; --frame: #05080d;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 18px 40px -16px rgb(0 0 0 / .7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131b; --surface: #161d28; --surface-2: #1c2431; --ink: #eef2f7; --ink-2: #c8d0db; --muted: #93a0b1; --line: #263041;
+  --accent: #7d9bff; --accent-ink: #0e131b; --accent-soft: #1b2645; --positive: #5fd39b; --positive-soft: #12291f;
+  --caution: #f0b65a; --caution-soft: #2e2413; --closing: #a8a1ff; --closing-soft: #221f43; --frame: #05080d;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 18px 40px -16px rgb(0 0 0 / .7);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font);
+  font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+h1, h2, h3, p { margin: 0; }
+h1, h2 { text-wrap: balance; letter-spacing: -0.025em; }
+.wrap {
+  max-width: 1040px; margin: 0 auto;
+  padding-left: max(18px, env(safe-area-inset-left, 0px));
+  padding-right: max(18px, env(safe-area-inset-right, 0px));
+}
+
+/* Header + tabs */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 12px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; letter-spacing: -.03em; }
+.mark { width: 28px; height: 28px; border-radius: 8px; background: var(--ink); color: var(--bg); display: grid; place-items: center; }
+.tabs { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--surface-2); }
+.tab { height: 34px; padding: 0 14px; border-radius: 9px; font-size: 14px; font-weight: 580; color: var(--muted); white-space: nowrap; transition: background .2s, color .2s, box-shadow .2s; }
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgb(16 24 40 / .12); }
+@media (max-width: 560px) {
+  .tabs { width: 100%; }
+  .tab { flex: 1; padding: 0 6px; font-size: 13.5px; }
+}
+
+/* Views */
+.view { padding-block: 28px 64px; }
+.view[hidden] { display: none !important; }
+.view.enter { animation: viewIn .45s var(--ease); }
+@keyframes viewIn { from { opacity: .3; transform: translateY(10px); } }
+.intro { display: grid; gap: 8px; margin-bottom: 26px; max-width: 620px; }
+.kicker { font-size: 12.5px; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; color: var(--accent); }
+.intro h1 { font-size: clamp(28px, 6vw, 42px); line-height: 1.1; font-weight: 700; }
+.intro h2 { font-size: clamp(24px, 5vw, 32px); line-height: 1.15; font-weight: 680; }
+.intro p { color: var(--ink-2); font-size: 17px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 580; background: var(--caution-soft); color: var(--caution); width: fit-content; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* Swap tour */
+.tour { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 48px; align-items: center; }
+.device { position: relative; width: 100%; max-width: 320px; margin: 0 auto; touch-action: pan-y; }
+.phone {
+  position: relative; border-radius: 40px; padding: 10px;
+  background: var(--frame); box-shadow: var(--shadow);
+}
+.phone .screen { position: relative; aspect-ratio: 390 / 664; border-radius: 31px; overflow: hidden; background: var(--surface); }
+.phone .screen img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top;
+  opacity: 0; transform: scale(1.03); transition: opacity .5s var(--ease), transform .6s var(--ease);
+}
+.phone .screen img.on { opacity: 1; transform: none; }
+.laptop { display: none; }
+.device.wide .phone { display: none; }
+.device.wide .laptop { display: block; }
+.laptop .lid { border-radius: 14px; padding: 8px; background: var(--frame); box-shadow: var(--shadow); }
+.laptop .lid img { display: block; width: 100%; border-radius: 7px; }
+.laptop .base { height: 12px; margin: 0 -6%; border-radius: 0 0 14px 14px; background: color-mix(in srgb, var(--frame) 80%, var(--muted)); }
+.zoom { display: flex; margin: 14px auto 0; height: 34px; padding: 0 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); font-size: 13px; font-weight: 600; align-items: center; gap: 6px; }
+
+.steps-panel { display: grid; gap: 22px; min-width: 0; }
+.step-count { font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.step-text { display: grid; gap: 10px; min-height: 150px; }
+.step-text h3 { font-size: clamp(22px, 4.5vw, 30px); line-height: 1.15; letter-spacing: -.02em; font-weight: 700; }
+.step-text p { font-size: 17px; color: var(--ink-2); max-width: 46ch; }
+.step-text .fade { animation: textIn .45s var(--ease); }
+@keyframes textIn { from { opacity: 0; transform: translateY(8px); } }
+.progress { display: flex; gap: 6px; }
+.progress button { flex: 1; height: 5px; border-radius: 999px; background: var(--line); position: relative; overflow: hidden; }
+.progress button::after { content: ""; position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .4s var(--ease); }
+.progress button.done::after { transform: scaleX(1); }
+.nav { display: flex; gap: 10px; }
+.btn { height: 46px; padding: 0 20px; border-radius: 12px; font-weight: 620; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .15s var(--ease), background .2s, opacity .2s; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); flex: 1; }
+.btn.ghost { background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+.btn:disabled { opacity: .35; cursor: default; }
+.hint { font-size: 13px; color: var(--muted); }
+
+@media (max-width: 760px) {
+  .tour { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .device { max-width: 270px; }
+  .device.wide { max-width: 100%; }
+  .step-text { min-height: 0; text-align: center; justify-items: center; }
+  .step-count { text-align: center; }
+  .steps-panel { gap: 14px; }
+  .progress { order: 1; }
+  .nav { order: 2; }
+  .step-count { order: 3; margin-top: 6px; }
+  .step-text { order: 4; }
+}
+
+/* Who can close */
+.closer-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.shift-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); display: grid; gap: 14px; }
+.shift-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.shift-head small { color: var(--muted); font-size: 13px; }
+.shift-head strong { font-size: 20px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tag-close { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--closing-soft); color: var(--closing); font-size: 12.5px; font-weight: 650; }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); font-weight: 600; font-size: 15px; }
+.switch { position: relative; width: 48px; height: 28px; border-radius: 999px; background: var(--line); transition: background .25s; flex: none; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .25); transition: transform .25s var(--ease); }
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+.people { display: grid; gap: 8px; }
+.person {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  padding: 11px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
+  transition: opacity .35s var(--ease), transform .35s var(--ease), border-color .3s, background .3s;
+}
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.a1 { background: #e2eafd; color: #2747a8; } .a2 { background: #e3f2e9; color: #22663f; } .a3 { background: #fcebe1; color: #9a4a1f; }
+.a4 { background: #ece8fb; color: #5340a8; } .a5 { background: #f7efd9; color: #7c5b12; }
+.person .who { display: grid; min-width: 0; }
+.person .who strong { font-size: 15px; display: flex; align-items: center; gap: 6px; }
+.person .who small { color: var(--muted); font-size: 13px; }
+.key { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--closing-soft); color: var(--closing); transform: scale(0); transition: transform .35s var(--ease); }
+.people.show .key { transform: scale(1); }
+.people.show .person.no { opacity: .38; transform: scale(.985); }
+.people.show .person.yes { border-color: color-mix(in srgb, var(--closing) 45%, var(--line)); background: color-mix(in srgb, var(--closing-soft) 45%, var(--surface)); }
+.status { font-size: 12.5px; font-weight: 640; white-space: nowrap; }
+.status.ok { color: var(--positive); }
+.status.no { color: var(--muted); }
+.explain { display: grid; gap: 14px; }
+.explain h3 { font-size: 22px; letter-spacing: -.02em; }
+.explain p { color: var(--ink-2); font-size: 16.5px; }
+.checks { display: grid; gap: 8px; margin-top: 4px; }
+.check { display: flex; gap: 10px; align-items: center; font-size: 15px; color: var(--ink-2); }
+.check svg { flex: none; color: var(--positive); }
+@media (max-width: 760px) { .closer-demo { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
+
+/* Manager carousel */
+.rail { display: grid; grid-auto-flow: column; grid-auto-columns: min(84%, 720px); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.rail::-webkit-scrollbar { display: none; }
+.slide { scroll-snap-align: center; display: grid; gap: 14px; }
+.slide .shot { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--surface); }
+.slide .shot img { display: block; width: 100%; height: auto; }
+.slide h3 { font-size: 19px; letter-spacing: -.015em; }
+.slide p { color: var(--muted); font-size: 15px; max-width: 52ch; }
+.rail-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.dots { display: flex; gap: 6px; }
+.dots button { width: 8px; height: 8px; border-radius: 999px; background: var(--line); transition: width .3s var(--ease), background .3s; }
+.dots button[aria-current="true"] { width: 22px; background: var(--accent); }
+.arrows { display: flex; gap: 8px; }
+.round { width: 42px; height: 42px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; }
+
+/* Status */
+.status-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 36px; }
+.box { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 10px; align-content: start; }
+.box h3 { font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.box ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink-2); font-size: 15px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; }
+.dot.ok { background: var(--positive); } .dot.next { background: var(--caution); }
+.note { margin-top: 14px; font-size: 14px; color: var(--muted); }
+@media (max-width: 640px) { .status-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Lightbox */
+dialog.lightbox { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; padding: 0; border: 0; background: rgb(8 11 16 / .92); }
+dialog.lightbox[open] { animation: lbIn .25s var(--ease); display: grid; place-items: center; }
+@keyframes lbIn { from { opacity: 0; } }
+dialog.lightbox img { max-width: calc(100vw - 32px); max-height: calc(100dvh - 120px); border-radius: 10px; object-fit: contain; }
+dialog.lightbox .close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); height: 40px; padding: 0 16px; border-radius: 999px; background: rgb(255 255 255 / .14); color: #fff; font-weight: 600; }
+dialog.lightbox p { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; text-align: center; color: #cfd6e0; font-size: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+<style>
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <span class="brand">
+      <span class="mark" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 11.5 6.5 4M7.2 12.5 10.7 5M11.4 11.5 13.4 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span>
+      ShiftFlow
+    </span>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="t-swap" aria-controls="swap" aria-selected="true" data-view="swap">The swap</button>
+      <button class="tab" role="tab" id="t-close" aria-controls="close" aria-selected="false" data-view="close">Who can close</button>
+      <button class="tab" role="tab" id="t-you" aria-controls="you" aria-selected="false" data-view="you">For you</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- 1. The swap tour -->
+  <section class="view" id="swap" role="tabpanel" aria-labelledby="t-swap">
+    <div class="intro">
+      <span class="pill">Prototype · fictional team</span>
+      <h1>Swaps that don’t get lost.</h1>
+      <p>Someone can’t make their shift. Here’s what happens, step by step. Tap <b>Next</b> or swipe the phone.</p>
+    </div>
+    <div class="tour">
+      <div class="device" id="device">
+        <div class="phone"><div class="screen" id="screen"></div></div>
+        <div class="laptop"><div class="lid"><img id="laptopImg" alt=""></div><div class="base"></div></div>
+        <button class="zoom" id="zoomBtn" aria-label="Open screenshot full size">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Enlarge
+        </button>
+      </div>
+      <div class="steps-panel">
+        <div class="progress" id="progress" aria-label="Steps"></div>
+        <div class="step-count" id="stepCount" aria-live="polite"></div>
+        <div class="step-text" id="stepText"></div>
+        <div class="nav">
+          <button class="btn ghost" id="prev" aria-label="Previous step">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <button class="btn primary" id="next">Next</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Who can close -->
+  <section class="view" id="close" role="tabpanel" aria-labelledby="t-close" hidden>
+    <div class="intro">
+      <span class="kicker">Your idea</span>
+      <h2>See straight away who can close.</h2>
+      <p>A small key next to someone’s name means they can close. ShiftFlow only lets people ask colleagues who can actually take the shift.</p>
+    </div>
+    <div class="closer-demo">
+      <div class="shift-card">
+        <div class="shift-head">
+          <div><small>Friday 20 November</small><br><strong>15:00–23:00</strong></div>
+          <span class="tag-close">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3"/></svg>Closing shift
+          </span>
+        </div>
+        <div class="toggle">
+          <span id="toggleLabel">Show who can take it</span>
+          <button class="switch" id="closerSwitch" role="switch" aria-checked="false" aria-labelledby="toggleLabel"></button>
+        </div>
+        <div class="people" id="people">
+          <div class="person yes"><span class="avatar a1">FM</span><span class="who"><strong>Finn <span class="key" title="Can close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3"/></svg></span></strong><small>Free · can close</small></span><span class="status ok" data-ok="Can take it">&nbsp;</span></div>
+          <div class="person yes"><span class="avatar a2">YM</span><span class="who"><strong>Yara <span class="key" title="Can close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3"/></svg></span></strong><small>Free · can close</small></span><span class="status ok" data-ok="Can take it">&nbsp;</span></div>
+          <div class="person no"><span class="avatar a3">SB</span><span class="who"><strong>Sofia</strong><small>Free · can’t close yet</small></span><span class="status no" data-ok="Can’t close">&nbsp;</span></div>
+          <div class="person no"><span class="avatar a4">NS</span><span class="who"><strong>Noah <span class="key" title="Can close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3"/></svg></span></strong><small>Can close · already working</small></span><span class="status no" data-ok="Busy">&nbsp;</span></div>
+          <div class="person no"><span class="avatar a5">TL</span><span class="who"><strong>Tess</strong><small>New · needs a supervisor</small></span><span class="status no" data-ok="In training">&nbsp;</span></div>
+        </div>
+      </div>
+      <div class="explain">
+        <h3>What ShiftFlow checks before anyone is asked</h3>
+        <p>Flip the switch to see it in action. Only people who pass every check can be asked. The rest are shown with the reason why.</p>
+        <div class="checks">
+          <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>They’re free that day and time</div>
+          <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>They can close, if it’s a closing shift</div>
+          <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>New people always work with someone experienced</div>
+          <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>No double shifts, enough rest, not over their hours</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. For the manager -->
+  <section class="view" id="you" role="tabpanel" aria-labelledby="t-you" hidden>
+    <div class="intro">
+      <span class="kicker">For managers</span>
+      <h2>You approve. Nothing gets forgotten.</h2>
+      <p>Swipe through the manager screens. Tap any screen to see it full size.</p>
+    </div>
+    <div class="rail" id="rail" tabindex="0" aria-label="Manager screens">
+      <article class="slide">
+        <button class="shot" data-zoom="img/d-swap-pending.webp" data-cap="Swap Centre"><img src="img/d-swap-pending.webp" alt="Swap Centre with a request marked Safe to apply" loading="lazy"></button>
+        <h3>Swap Centre</h3>
+        <p>Every request in one place: who asked, who said yes, and exactly what changes. A check shows “Safe to apply” before you approve.</p>
+      </article>
+      <article class="slide">
+        <button class="shot" data-zoom="img/d-overview.webp" data-cap="Overview"><img src="img/d-overview.webp" alt="Overview with what needs attention and today's line-up" loading="lazy"></button>
+        <h3>Overview</h3>
+        <p>What needs your attention this week, and today’s line-up with who is closing.</p>
+      </article>
+      <article class="slide">
+        <button class="shot" data-zoom="img/d-schedule.webp" data-cap="Weekly schedule"><img src="img/d-schedule.webp" alt="Weekly schedule grid" loading="lazy"></button>
+        <h3>Weekly schedule</h3>
+        <p>The whole week at a glance. Shifts with a swap in progress are marked.</p>
+      </article>
+      <article class="slide">
+        <button class="shot" data-zoom="img/d-team.webp" data-cap="Team"><img src="img/d-team.webp" alt="Team page showing who can open, close and supervise" loading="lazy"></button>
+        <h3>Team</h3>
+        <p>Who can open, close and supervise, in one view. You decide who has which skill.</p>
+      </article>
+      <article class="slide">
+        <button class="shot" data-zoom="img/d-intelligence.webp" data-cap="Generate my week"><img src="img/d-intelligence.webp" alt="Three generated schedule options side by side" loading="lazy"></button>
+        <h3>Generate my week</h3>
+        <p>Optional: let it suggest a full week and compare three options. You always choose and can change everything.</p>
+      </article>
+    </div>
+    <div class="rail-nav">
+      <div class="dots" id="dots"></div>
+      <div class="arrows">
+        <button class="round" id="railPrev" aria-label="Previous screen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button class="round" id="railNext" aria-label="Next screen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+    </div>
+
+    <div class="status-grid">
+      <div class="box">
+        <h3><span class="dot ok"></span>Works already</h3>
+        <ul>
+          <li>Finding who can take a shift</li>
+          <li>Accepting and approving swaps</li>
+          <li>Full history of every change</li>
+          <li>Time off and availability requests</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3><span class="dot next"></span>Not yet</h3>
+        <ul>
+          <li>Not connected to the app you use now, so changes would still be copied over by hand</li>
+          <li>Not online yet. It runs on my laptop for now</li>
+          <li>No phone notifications yet, only inside the app</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note">Everyone in these screens is made up. No real team information is used.</p>
+  </section>
+</main>
+
+<dialog class="lightbox" id="lightbox" aria-label="Screenshot">
+  <button class="close" id="lbClose">Close</button>
+  <img id="lbImg" alt="">
+  <p id="lbCap"></p>
+</dialog>
+
+<script>
+(function () {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Tabs with #hash ---------- */
+  const tabs = [...document.querySelectorAll('.tab')];
+  const views = ['swap', 'close', 'you'];
+  function show(id, focus) {
+    if (!views.includes(id)) id = 'swap';
+    tabs.forEach(t => {
+      const on = t.dataset.view === id;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      if (on && focus) t.focus();
+    });
+    views.forEach(v => {
+      const el = document.getElementById(v);
+      const on = v === id;
+      el.hidden = !on;
+      if (on) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
+    });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => {
+      if (location.hash.slice(1) !== t.dataset.view) history.replaceState(null, '', '#' + t.dataset.view);
+      show(t.dataset.view);
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    });
+    t.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      history.replaceState(null, '', '#' + n.dataset.view);
+      show(n.dataset.view, true);
+    });
+  });
+  window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+
+  /* ---------- Swap tour ---------- */
+  const steps = [
+    { img: 'img/m-home.webp', title: 'Nora sees her week', text: 'Everyone has their own login and sees only their own shifts, with the next one at the top.' },
+    { img: 'img/m-sheet.webp', title: 'She can’t make Friday', text: 'She taps the shift and chooses “Find a replacement”. It’s a closing shift, so whoever takes it has to be able to close.' },
+    { img: 'img/m-candidates.webp', title: 'She sees who can take it', text: 'Only colleagues who are free, can close and aren’t already working show up as options. Each one comes with a short reason.' },
+    { img: 'img/m-sent.webp', title: 'She asks Finn', text: 'One tap sends the request. The shift stays Nora’s until it’s approved, so nothing changes by accident.' },
+    { img: 'img/m-offer.webp', title: 'Finn says yes', text: 'Finn gets the request in the app and accepts. No WhatsApp needed.' },
+    { img: 'img/d-swap-pending.webp', wide: true, title: 'You approve it', text: 'It lands in your Swap Centre with a “Safe to apply” check. One tap and the schedule updates. Who asked, who agreed and who approved is all saved.' },
+  ];
+  const screen = document.getElementById('screen');
+  const laptopImg = document.getElementById('laptopImg');
+  const device = document.getElementById('device');
+  const progress = document.getElementById('progress');
+  const stepText = document.getElementById('stepText');
+  const stepCount = document.getElementById('stepCount');
+  const prev = document.getElementById('prev'), next = document.getElementById('next');
+  const imgs = steps.map(s => {
+    if (s.wide) return null;
+    const im = new Image(); im.src = s.img; im.alt = s.title; im.decoding = 'async';
+    screen.appendChild(im); return im;
+  });
+  const bars = steps.map((s, i) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Step ' + (i + 1) + ': ' + s.title);
+    b.addEventListener('click', () => go(i));
+    progress.appendChild(b); return b;
+  });
+  let cur = 0;
+  function go(i) {
+    cur = Math.max(0, Math.min(steps.length - 1, i));
+    const s = steps[cur];
+    imgs.forEach((im, k) => im && im.classList.toggle('on', k === cur));
+    device.classList.toggle('wide', !!s.wide);
+    if (s.wide) { laptopImg.src = s.img; laptopImg.alt = s.title; }
+    bars.forEach((b, k) => { b.classList.toggle('done', k <= cur); b.setAttribute('aria-current', k === cur); });
+    stepCount.textContent = 'Step ' + (cur + 1) + ' of ' + steps.length;
+    stepText.innerHTML = '';
+    const wrap = document.createElement('div'); wrap.className = 'fade';
+    wrap.style.display = 'grid'; wrap.style.gap = '10px'; wrap.style.justifyItems = 'inherit';
+    const h = document.createElement('h3'); h.textContent = s.title;
+    const p = document.createElement('p'); p.textContent = s.text;
+    wrap.append(h, p); stepText.appendChild(wrap);
+    prev.disabled = cur === 0;
+    next.textContent = cur === steps.length - 1 ? 'Start again' : 'Next';
+  }
+  prev.addEventListener('click', () => go(cur - 1));
+  next.addEventListener('click', () => go(cur === steps.length - 1 ? 0 : cur + 1));
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('swap').hidden || document.getElementById('lightbox').open) return;
+    if (e.target.closest && e.target.closest('.tabs')) return;
+    if (e.key === 'ArrowRight') go(cur + 1);
+    if (e.key === 'ArrowLeft') go(cur - 1);
+  });
+  let sx = null, sy = null;
+  device.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  device.addEventListener('touchend', e => {
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(cur + (dx < 0 ? 1 : -1));
+    sx = null;
+  });
+  document.getElementById('zoomBtn').addEventListener('click', () => openLb(steps[cur].img, steps[cur].title));
+  go(0);
+
+  /* ---------- Who can close ---------- */
+  const sw = document.getElementById('closerSwitch'), people = document.getElementById('people');
+  const label = document.getElementById('toggleLabel');
+  function setCloser(on) {
+    sw.setAttribute('aria-checked', on);
+    people.classList.toggle('show', on);
+    label.textContent = on ? 'Showing who can take it' : 'Show who can take it';
+    people.querySelectorAll('.status').forEach(s => { s.textContent = on ? s.dataset.ok : ' '; });
+  }
+  sw.addEventListener('click', () => setCloser(sw.getAttribute('aria-checked') !== 'true'));
+  // Gently demonstrate the switch the first time the tab is opened.
+  let demoed = false;
+  const closeTab = document.querySelector('[data-view="close"]');
+  function maybeDemo() {
+    if (demoed || document.getElementById('close').hidden) return;
+    demoed = true;
+    setTimeout(() => setCloser(true), reduce ? 0 : 700);
+  }
+  closeTab.addEventListener('click', maybeDemo);
+  window.addEventListener('hashchange', maybeDemo);
+  maybeDemo();
+
+  /* ---------- Manager carousel ---------- */
+  const rail = document.getElementById('rail'), dots = document.getElementById('dots');
+  const slides = [...rail.querySelectorAll('.slide')];
+  const dotBtns = slides.map((s, i) => {
+    const d = document.createElement('button');
+    d.setAttribute('aria-label', 'Screen ' + (i + 1) + ': ' + s.querySelector('h3').textContent);
+    d.addEventListener('click', () => toSlide(i));
+    dots.appendChild(d); return d;
+  });
+  function toSlide(i) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    rail.scrollTo({ left: slides[i].offsetLeft - rail.offsetLeft - (rail.clientWidth - slides[i].clientWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  function current() {
+    const mid = rail.scrollLeft + rail.clientWidth / 2 + rail.offsetLeft;
+    let best = 0, dist = Infinity;
+    slides.forEach((s, i) => { const c = s.offsetLeft + s.clientWidth / 2; if (Math.abs(c - mid) < dist) { dist = Math.abs(c - mid); best = i; } });
+    return best;
+  }
+  function mark() { const c = current(); dotBtns.forEach((d, i) => d.setAttribute('aria-current', i === c)); }
+  rail.addEventListener('scroll', () => requestAnimationFrame(mark), { passive: true });
+  document.getElementById('railPrev').addEventListener('click', () => toSlide(current() - 1));
+  document.getElementById('railNext').addEventListener('click', () => toSlide(current() + 1));
+  rail.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); toSlide(current() + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); toSlide(current() - 1); }
+  });
+  mark();
+
+  /* ---------- Lightbox ---------- */
+  const lb = document.getElementById('lightbox'), lbImg = document.getElementById('lbImg'), lbCap = document.getElementById('lbCap');
+  function openLb(src, cap) {
+    lbImg.src = src; lbImg.alt = cap; lbCap.textContent = cap;
+    if (typeof lb.showModal === 'function') lb.showModal();
+  }
+  document.querySelectorAll('[data-zoom]').forEach(b => b.addEventListener('click', () => openLb(b.dataset.zoom, b.dataset.cap)));
+  document.getElementById('lbClose').addEventListener('click', () => lb.close());
+  lb.addEventListener('click', e => { if (e.target === lb) lb.close(); });
+})();
+</script>
+</body>
+</html>
