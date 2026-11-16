@@ -114,3 +114,7 @@ Default candidate starts are hourly; interval coverage/break units are half-hour
 ## Milestone 3 use of the formulation
 
 All three UI alternatives solve the exact same captured snapshot with existing strategy weights. Preview edits invalidate validation, and validation/save check the full proposed assignment set independently. Stale source revisions are rejected. UI comparison metrics refer to original generated assignments; edited preview totals are separate. The mathematical constraints and normalization from Milestone 2 are unchanged.
+
+### Hosted memory bound: aggregate rest intervals
+
+The one-shift-per-employee-per-day equality permits an equivalent compact rest model. For each employee/day, selected UTC start and end are linear sums of candidate starts/ends weighted by assignment binaries. One optional interval uses those selected times, extends the end by mandatory rest, and is present exactly when that employee works that day. `NoOverlap` operates on at most seven such intervals per employee plus fixed boundary assignments, instead of on every candidate/break variant. Fixed boundary conflicts remain explicit preflight findings. No candidate, objective term, qualification, coverage, supervision, availability or working-time rule is relaxed. Spring/fall Amsterdam DST, locked adjacent shifts and invalid boundary rest have regression tests. Capacity exhaustion returns an explicit 503 and never produces a saved/eligible schedule.

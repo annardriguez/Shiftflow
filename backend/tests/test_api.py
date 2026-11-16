@@ -265,3 +265,14 @@ def test_internal_engine_cannot_run_without_required_key(monkeypatch):
     monkeypatch.delenv("SHIFTFLOW_ENGINE_TOKEN", raising=False)
     with pytest.raises(RuntimeError, match="key is required"):
         request(create_app(require_key=True), "GET", "/health")
+
+
+def test_memory_exhaustion_is_explicit_and_does_not_store_a_run(tiny, monkeypatch):
+    import backend.api.main as api
+    def exhausted(_):
+        raise MemoryError('simulated capacity exhaustion')
+    monkeypatch.setattr(api, 'optimize', exhausted)
+    payload = SolveRequest(snapshot=tiny, strategies=('balanced',)).model_dump(mode='json')
+    response = request(create_app(), 'POST', '/v1/schedule-runs', json=payload)
+    assert response.status_code == 503
+    assert 'No roster was saved' in response.json()['detail']
