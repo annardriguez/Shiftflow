@@ -1,8 +1,10 @@
 # ShiftFlow
 
-Local restaurant workforce planning with an independently validated FastAPI/OR-Tools engine, employee requests, manager approvals, password sign-in and PostgreSQL tenant isolation. Milestones 1–5 are implemented for **fictional local data**. Strobbo is not connected and nothing is deployed publicly.
+Restaurant workforce planning with an independently validated FastAPI/OR-Tools engine, employee requests, manager approvals, password sign-in and PostgreSQL tenant isolation. Milestones 1–5 and a separate **fictional hosted demo** are implemented. Strobbo is not connected.
 
-The working copy is `/Users/annarodriguez/.codex/local-projects/shiftflow`, outside iCloud. Existing manual fixtures deliberately include some skill/supervision gaps; generating and saving a feasible roster provides a valid starting point for cover/swap workflows.
+Hosted demo: https://shiftflow-maastricht-annamarina10r-8300.vercel.app — the full app on Vercel with persistent Neon PostgreSQL, not the static Sites preview. Eefje and Osamah have individual manager sign-ins; passwords are private. Setup and runtime boundaries are documented in [docs/deploy-vercel.md](docs/deploy-vercel.md). The deployment uses Vercel's beta Container Runtime and provider quotas apply.
+
+Keep working copies outside iCloud. The local generic manual fixtures deliberately include some skill/supervision gaps; generating and saving a feasible roster provides a valid starting point for cover/swap workflows. The hosted Maastricht demo has its own fictional data and a generated, validated starting roster.
 
 ## Run locally
 

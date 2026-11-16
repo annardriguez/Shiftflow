@@ -1,4 +1,6 @@
-# Put ShiftFlow online (free, on Hugging Face Spaces)
+# Legacy Hugging Face deployment instructions
+
+For the current working hosted demo, use [Vercel and Neon](deploy-vercel.md). These older instructions described Hugging Face's previous free Docker offer. As of 16 November 2026, creating Docker Spaces requires a paid plan according to the [current Spaces documentation](https://huggingface.co/docs/hub/en/spaces-overview). Do not assume the free-account setup below is still available.
 
 This publishes a **demo** of ShiftFlow at a public web address you can send to anyone. It runs the whole app (website, scheduling engine and database) in one container on Hugging Face's free plan.
 

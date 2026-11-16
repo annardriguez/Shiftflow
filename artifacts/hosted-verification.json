@@ -1,0 +1,44 @@
+{
+  "origin": "https://shiftflow-maastricht-annamarina10r-8300.vercel.app",
+  "fictional": true,
+  "externalSync": "not_connected",
+  "at": "2026-11-16T08:31:31.779Z",
+  "checks": [
+    "Manager sign-in and personalized tenant",
+    "Anonymous and foreign-origin mutations rejected",
+    "Live three-strategy OR-Tools generation, independent validation and atomic save",
+    "Employee portal isolation and qualification-aware replacement candidates",
+    "Employee cover request, colleague acceptance, fresh manager approval, exact roster change and attributed audit history",
+    "Duplicate/stale approval rejected"
+  ],
+  "alternatives": [
+    {
+      "strategy": "budget-first",
+      "status": "FEASIBLE",
+      "valid": true,
+      "hours": 126,
+      "coverage": 58.27505827505828
+    },
+    {
+      "strategy": "balanced",
+      "status": "FEASIBLE",
+      "valid": true,
+      "hours": 126,
+      "coverage": 58.27505827505828
+    },
+    {
+      "strategy": "coverage-first",
+      "status": "FEASIBLE",
+      "valid": true,
+      "hours": 126,
+      "coverage": 58.27505827505828
+    }
+  ],
+  "appliedDemoCover": {
+    "requestId": "6a3d111b-63df-4b56-9981-428edd98151e",
+    "from": "Achraf",
+    "to": "Sahara",
+    "approvedBy": "Eefje",
+    "approvedAt": "2026-11-16T08:32:06.422Z"
+  }
+}

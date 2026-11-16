@@ -1,5 +1,9 @@
 # Full fictional demo on Vercel and Neon
 
+Live URL: https://shiftflow-maastricht-annamarina10r-8300.vercel.app
+
+Verified on 16 November 2026: 76 TypeScript checks and 53 Python checks passed, along with type checking and production build. The real HTTPS flow generated and independently validated three alternatives, saved a roster, isolated the employee portal, identified eligible cover, accepted a colleague response and applied Eefje's freshly validated approval with an attributed audit trail. Anonymous access, foreign-origin mutations and duplicate approvals were rejected. See [verification evidence](../artifacts/hosted-verification.json). The initial fictional cover moved Achraf's Monday closing shift to Sahara.
+
 This deployment uses Vercel's Container Runtime (beta) to run the existing Next.js app and protected Python OR-Tools service together. The engine binds to loopback only. A separate Neon PostgreSQL database persists identities, rosters, approvals and audit events across container restarts and instances. No embedded database is started in the cloud container, and no Strobbo connection is configured.
 
 `Dockerfile.vercel` selects the container preset. `scripts/start-cloud.mjs` starts the protected engine, waits for health, then starts the web server on `$PORT`. `SHIFTFLOW_CLOUD=1` reads only explicit server environment settings; it never falls back to local runtime data. Remote connections must use Neon with `sslmode=verify-full`. All other local startup paths keep the loopback restriction.
