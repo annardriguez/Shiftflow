@@ -298,7 +298,7 @@ function SwapCentre() {
               }
             >
               {all.length
-                ? "Requests in other states are in the other tabs."
+                ? "Choose another status to see other requests."
                 : "When a team member asks a colleague to take a shift, it shows up here for your approval."}
             </EmptyState>
           ) : (
@@ -512,6 +512,7 @@ function RequestDetail({
           {"source" in r && r.source === "manager-recorded" && " · recorded by a manager"}
         </span>
         <Stepper request={r} />
+        {r.status === "applied" && <span className="sync-note">Saved in ShiftFlow only · external sync not connected</span>}
       </header>
       <div className="rd-body">
         <div className="section">

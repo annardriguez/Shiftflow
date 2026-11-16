@@ -4487,3 +4487,7 @@ main.page { gap: 26px; padding: 36px 36px 60px; }
   .change-card .cc-shift { padding: 16px 14px; }
   .change-card .cc-shift small { display: block; margin-top: 8px; line-height: 1.6; }
 }
+@media (max-width: 920px) {
+  main.page:has(> .swap-layout.request-open) > .page-title,
+  main.page:has(> .swap-layout.request-open) > .secondary-section { display: none; }
+}
