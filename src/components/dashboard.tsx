@@ -195,8 +195,9 @@ function Overview() {
         description={`${restaurant} · ${longDate(t)}`}
       >
         <WeekPicker />
+        <Link className="btn primary" href="/intelligence">Plan the week</Link>
       </PageTitle>
-      <div className="stat-row">
+      <div className="stat-row overview-stats">
         <Link href="/requests" className="stat" style={{ color: "inherit" }}>
           <span className="stat-label">Swaps to approve</span>
           <span className="stat-value">{awaitingMe.length}</span>
@@ -214,6 +215,10 @@ function Overview() {
             {m.gaps.length ? `${plural(m.gaps.length, "half-hour")} short` : "On target all week"}
           </span>
         </div>
+      </div>
+      <details className="secondary-section">
+        <summary>{diag.issues.length ? `${diag.issues.length} skill or supervision findings · view details` : "Hours & skill coverage"}</summary>
+        <div className="stat-row overview-stats">
         <div className="stat">
           <span className="stat-label">Skills & supervision</span>
           <span className="stat-value">
@@ -233,7 +238,8 @@ function Overview() {
             {m.hours > budget ? `${hours(m.hours - budget)} over target` : `${hours(budget - m.hours)} under target`}
           </span>
         </div>
-      </div>
+        </div>
+      </details>
 
       <section className="panel" aria-label="Week at a glance">
         <div className="week-strip">
@@ -399,7 +405,9 @@ function Overview() {
           </section>
         </div>
 
-        <div className="overview-col">
+        <details className="secondary-section overview-extras">
+          <summary>More tools & recent activity</summary>
+          <div className="overview-col">
           <section className="panel">
             <div className="panel-heading">
               <h2>Quick actions</h2>
@@ -504,7 +512,8 @@ function Overview() {
               {!data.audit.length && <p className="form-hint" style={{ padding: 16 }}>No changes yet.</p>}
             </div>
           </section>
-        </div>
+          </div>
+        </details>
       </div>
       {dialog && <ShiftDialog {...dialog} onClose={() => setDialog(null)} />}
     </>
