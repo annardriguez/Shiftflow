@@ -22,7 +22,7 @@ jobs:
         run: |
           set -eu
           # Spaces reject plain-git binaries; the demo needs none of these.
-          rm -rf .git artifacts shiftflow-milestone5-source.zip
+          rm -rf .git artifacts site shiftflow-milestone5-source.zip
           # Spaces read their configuration from README front matter.
           {
             printf -- '---\ntitle: ShiftFlow\nsdk: docker\napp_port: 7860\npinned: false\n---\n\n'
