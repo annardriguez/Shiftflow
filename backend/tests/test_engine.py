@@ -557,3 +557,44 @@ def test_genuine_warm_incumbent_is_validated_when_weighted_phase_times_out(tiny,
         sum(c.weighted_integer for c in result.objective_components.values())
         == result.metadata.integer_objective
     )
+
+@pytest.mark.parametrize('rest,expected', [(660, 'OPTIMAL'), (1440, 'INFEASIBLE')])
+def test_aggregated_day_rest_preserves_locked_assignment_feasibility(tiny, rest, expected):
+    monday = tiny.week_start
+    first = assignment(tiny).model_copy(update={'id': 'locked-mon'})
+    second = first.model_copy(update={'id': 'locked-tue', 'day': monday + timedelta(days=1)})
+    e = tiny.employees[0].model_copy(update={
+        'availability': tuple(Availability(day=monday + timedelta(days=i), windows=(Window(start=600, end=840),)) for i in range(2)),
+        'rules': tiny.employees[0].rules.model_copy(update={'min_rest_minutes': rest}),
+    })
+    p = tiny.model_copy(update={'employees': (e,), 'headcount': (), 'skill_requirements': (), 'baseline': (first, second), 'locked_assignment_ids': (first.id, second.id)})
+    result = run(p)
+    assert result.status == expected
+    if result.validation:
+        assert result.validation.valid == (expected == 'OPTIMAL')
+
+
+@pytest.mark.parametrize('monday,expected', [(date(2027, 3, 22), 'INFEASIBLE'), (date(2026, 10, 19), 'OPTIMAL')])
+def test_aggregated_day_rest_uses_elapsed_time_through_dst(tiny, monday, expected):
+    saturday, sunday = monday + timedelta(days=5), monday + timedelta(days=6)
+    first = assignment(tiny).model_copy(update={'id': 'locked-sat', 'day': saturday, 'start': 1140, 'end': 1380, 'kind': 'Closing'})
+    second = assignment(tiny).model_copy(update={'id': 'locked-sun', 'day': sunday})
+    e = tiny.employees[0].model_copy(update={'availability': (
+        Availability(day=saturday, windows=(Window(start=1140, end=1380),)),
+        Availability(day=sunday, windows=(Window(start=600, end=840),)),
+    )})
+    p = tiny.model_copy(update={'week_start': monday, 'operating_window': Window(start=600, end=1380), 'employees': (e,), 'headcount': (), 'skill_requirements': (), 'budgets': tuple(b.model_copy(update={'day': monday + timedelta(days=i)}) for i, b in enumerate(tiny.budgets)), 'baseline': (first, second), 'locked_assignment_ids': (first.id, second.id)})
+    result = run(p)
+    assert result.status == expected
+    if expected == 'OPTIMAL':
+        assert validate_assignments(p, result.assignments).valid
+
+
+def test_fixed_boundary_to_boundary_rest_is_still_enforced(tiny):
+    first = assignment(tiny).model_copy(update={'id': 'fixed-sat', 'day': tiny.week_start - timedelta(days=2), 'start': 1140, 'end': 1380, 'kind': 'Closing'})
+    second = assignment(tiny).model_copy(update={'id': 'fixed-sun', 'day': tiny.week_start - timedelta(days=1)})
+    e = tiny.employees[0].model_copy(update={'rules': tiny.employees[0].rules.model_copy(update={'min_rest_minutes': 1440})})
+    p = tiny.model_copy(update={'employees': (e,), 'operating_window': Window(start=600, end=1380), 'headcount': (), 'skill_requirements': (), 'boundary_assignments': (first, second)})
+    result = run(p)
+    assert result.status == 'INFEASIBLE'
+    assert any(i.code == 'boundary_rest' for i in result.diagnostics)

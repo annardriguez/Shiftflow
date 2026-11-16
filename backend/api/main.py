@@ -120,6 +120,11 @@ def create_app(require_key: bool = False) -> FastAPI:
             return response
         except ResourceLimit as exc:
             raise HTTPException(422, str(exc)) from exc
+        except MemoryError as exc:
+            raise HTTPException(
+                503,
+                "The scheduling search exceeded this instance's memory capacity. No roster was saved. Retry with fewer candidate choices or a larger scheduling instance.",
+            ) from exc
         finally:
             capacity.release()
 

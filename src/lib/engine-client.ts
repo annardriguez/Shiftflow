@@ -15,7 +15,9 @@ export async function engine<T>(endpoint: string, body: unknown): Promise<T> {
     });
   } catch {
     throw new ValidationError(
-      "The local engine is unavailable or timed out. Start npm run engine:dev and try again. Your saved roster is unchanged.",
+      process.env.SHIFTFLOW_CLOUD === "1"
+        ? "The scheduling service is unavailable or timed out. Please retry. Your saved roster is unchanged."
+        : "The local engine is unavailable or timed out. Start npm run engine:dev and try again. Your saved roster is unchanged.",
     );
   }
   const value = await response.json();

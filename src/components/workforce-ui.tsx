@@ -215,7 +215,7 @@ function SwapCentre() {
     <>
       <PageTitle
         title="Swap Centre"
-        description="Review replacement requests, see exactly what would change on the roster, and approve with confidence."
+        description="Choose a request to review."
       >
         <button className="btn" onClick={load} disabled={busy} aria-label="Refresh requests">
           <RefreshCw size={15} /> Refresh
@@ -224,7 +224,9 @@ function SwapCentre() {
           <PenLine size={15} /> Record agreed change
         </button>
       </PageTitle>
-      <div className="stat-row">
+      <details className="secondary-section">
+        <summary>{count("approval")} awaiting approval · Request summary</summary>
+        <div className="stat-row">
         <div className="stat">
           <span className="stat-label">Awaiting your approval</span>
           <span className="stat-value">{feed ? count("approval") : "–"}</span>
@@ -247,12 +249,16 @@ function SwapCentre() {
           <span className="stat-value">{feed ? count("closed") : "–"}</span>
           <span className="stat-note">Roster unchanged</span>
         </div>
-      </div>
+        </div>
+      </details>
       <ErrorBox error={error} />
-      <div className={`swap-layout ${feed && !requests.length ? "single" : ""}`}>
+      <div className={`swap-layout ${feed && !requests.length ? "single" : ""} ${selectedId && selected ? "request-open" : ""}`}>
         <section className="panel" aria-label="Requests">
           <div className="filter-bar">
-            <div className="segmented" role="tablist" aria-label="Request status">
+            <select className="request-status-mobile" aria-label="Request status" value={filter} onChange={(e) => { setFilter(e.target.value as RequestFilter); setSelectedId(null); }}>
+              {FILTERS.map((f) => <option key={f.id} value={f.id}>{f.label} ({count(f.id)})</option>)}
+            </select>
+            <div className="segmented request-status-desktop" role="tablist" aria-label="Request status">
               {FILTERS.map((f) => (
                 <button
                   key={f.id}
@@ -292,7 +298,7 @@ function SwapCentre() {
               }
             >
               {all.length
-                ? "Requests in other states are in the other tabs."
+                ? "Choose another status to see other requests."
                 : "When a team member asks a colleague to take a shift, it shows up here for your approval."}
             </EmptyState>
           ) : (
@@ -338,6 +344,7 @@ function SwapCentre() {
             act={act}
             workspace={data}
             canClose={canClose}
+            onBack={() => setSelectedId(null)}
           />
         ) : (
           feed && (
@@ -462,6 +469,7 @@ function RequestDetail({
   act,
   workspace,
   canClose,
+  onBack,
 }: {
   request: WorkforceRequest;
   names: Names;
@@ -469,6 +477,7 @@ function RequestDetail({
   act: (r: WorkforceRequest, action: string, note: string) => Promise<void>;
   workspace: Workspace;
   canClose: (id: string) => boolean;
+  onBack: () => void;
 }) {
   const [note, setNote] = useState(""),
     [confirm, setConfirm] = useState<null | "approve" | "reject" | "cancel">(null);
@@ -491,6 +500,7 @@ function RequestDetail({
   return (
     <section className="panel request-detail" aria-label="Request details">
       <header>
+        <button className="request-back text-link" onClick={onBack}>← All requests</button>
         <div className="rd-top">
           <h2>
             <KindIcon kind={r.kind} /> {requestTitle(r)}
@@ -502,6 +512,7 @@ function RequestDetail({
           {"source" in r && r.source === "manager-recorded" && " · recorded by a manager"}
         </span>
         <Stepper request={r} />
+        {r.status === "applied" && <span className="sync-note">Saved in ShiftFlow only · external sync not connected</span>}
       </header>
       <div className="rd-body">
         <div className="section">
@@ -530,8 +541,8 @@ function RequestDetail({
           </div>
         )}
         {r.status === "applied" && (
-          <div className="section">
-            <h3>Approval record</h3>
+          <details className="section detail-disclosure">
+            <summary>Approval record</summary>
             <div className="detail-list">
               <div>
                 <span className="k">Approved by</span>
@@ -552,17 +563,17 @@ function RequestDetail({
                 </span>
               </div>
             </div>
-          </div>
+          </details>
         )}
         {!active && r.status !== "applied" && (
           <Callout tone="neutral" title={meta.label}>
             {meta.next}
           </Callout>
         )}
-        <div className="section">
-          <h3>History</h3>
+        <details className="section detail-disclosure">
+          <summary>Request history</summary>
           <Timeline request={r} names={names} />
-        </div>
+        </details>
       </div>
       {active && (
         <div className="rd-actions">

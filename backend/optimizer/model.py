@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from hashlib import sha256
+from itertools import combinations
 from time import perf_counter
 
 import ortools
@@ -22,7 +23,7 @@ from .contracts import (
     Weights,
 )
 from .metrics import COMPONENTS, RATIO_SCALE, SCALE, coefficients, context, evaluate
-from .time_math import active, instant, signature
+from .time_math import active, conflicting, instant, signature
 from .validation import individual_issues, qualified, requirements_at, validate_assignments
 
 
@@ -69,26 +70,11 @@ def solve(
                 message=f"Inspect weekly/rolling entitlement, maximum hours and days for {e.id}; this group is in a jointly inconsistent assumption set",
             ),
         )
-        intervals = []
-        for i in indices:
-            s = candidates[i]
-            start = int((instant(s.day, s.start, p.timezone) - origin).total_seconds() // 60)
-            end = int((instant(s.day, s.end, p.timezone) - origin).total_seconds() // 60)
-            intervals.append(
-                model.new_optional_fixed_size_interval_var(
-                    start, end - start + e.rules.min_rest_minutes, x[e.id, i], f"rest_{e.id}_{i}"
-                )
-            )
-        for s in p.boundary_assignments:
-            if s.employee_id == e.id:
-                start = int((instant(s.day, s.start, p.timezone) - origin).total_seconds() // 60)
-                end = int((instant(s.day, s.end, p.timezone) - origin).total_seconds() // 60)
-                intervals.append(
-                    model.new_fixed_size_interval_var(
-                        start, end - start + e.rules.min_rest_minutes, f"fixed_{s.id}"
-                    )
-                )
-                problems = individual_issues(p, e, s, availability=False)
+        # Candidate preparation already rejects every conflict with fixed boundary
+        # shifts. Check boundary-to-boundary rest explicitly as well.
+        for fixed in p.boundary_assignments:
+            if fixed.employee_id == e.id:
+                problems = individual_issues(p, e, fixed, availability=False)
                 if problems:
                     preflight.extend(problems)
                     model.add(0 == 1).only_enforce_if(employment)
@@ -108,12 +94,36 @@ def solve(
                     )
                 )
                 model.add(0 == 1).only_enforce_if(employment)
-        model.add_no_overlap(intervals)
+        for left, right in combinations(fixed_for_employee, 2):
+            if conflicting(left, right, p.timezone, e.rules.min_rest_minutes):
+                preflight.append(Issue(code="boundary_rest", employee_id=e.id,
+                    day=right.day, message="Fixed boundary shifts violate overlap/rest limits"))
+                model.add(0 == 1).only_enforce_if(employment)
+        day_intervals = []
         for day in p.days:
             chosen = [x[e.id, i] for i in indices if candidates[i].day == day]
             zday = model.new_bool_var(f"works_{e.id}_{day}")
             model.add(sum(chosen) == zday)  # explicit one-shift-per-day policy
             daily_vars[e.id, day] = zday
+            day_indices = [i for i in indices if candidates[i].day == day]
+            start = sum(int((instant(day, candidates[i].start, p.timezone) - origin).total_seconds() // 60) * x[e.id, i] for i in day_indices)
+            end = sum(int((instant(day, candidates[i].end, p.timezone) - origin).total_seconds() // 60) * x[e.id, i] for i in day_indices)
+            horizon = int((instant(p.days[-1], p.operating_window.end, p.timezone) - origin).total_seconds() // 60) + e.rules.min_rest_minutes
+            start_var = model.new_int_var(0, horizon, f"day_start_{e.id}_{day}")
+            end_var = model.new_int_var(0, horizon, f"day_end_rest_{e.id}_{day}")
+            size_var = model.new_int_var(0, 540 + e.rules.min_rest_minutes, f"day_size_rest_{e.id}_{day}")
+            model.add(start_var == start)
+            model.add(end_var == end + e.rules.min_rest_minutes)
+            model.add(size_var == end_var - start_var)
+            day_intervals.append(model.new_optional_interval_var(start_var, size_var, end_var, zday, f"day_rest_{e.id}_{day}"))
+        # One selected interval per employee/day is equivalent to the original
+        # candidate intervals under the existing one-shift/day equality. Keep
+        # global rest propagation without thousands of alternative intervals.
+        for fixed in fixed_for_employee:
+            start = int((instant(fixed.day, fixed.start, p.timezone) - origin).total_seconds() // 60)
+            end = int((instant(fixed.day, fixed.end, p.timezone) - origin).total_seconds() // 60)
+            day_intervals.append(model.new_fixed_size_interval_var(start, end - start + e.rules.min_rest_minutes, f"fixed_rest_{fixed.id}"))
+        model.add_no_overlap(day_intervals)
         h = model.new_int_var(0, e.rules.max_weekly_units, f"hours_{e.id}")
         model.add(h == sum(candidates[i].paid_units * x[e.id, i] for i in indices))
         model.add(h >= e.rules.min_weekly_units).only_enforce_if(employment)
@@ -376,6 +386,8 @@ def solve(
         )
     invalid = bool(model_error)
     warm_solver = None
+    warm_model = None
+    complete_model = None
     warm_status_name = None
     warm_seconds = 0.0
     warm_deterministic = 0.0
@@ -438,6 +450,9 @@ def solve(
         solver.parameters.max_deterministic_time = max(
             0, options.deterministic_time_limit - warm_deterministic
         )
+    # Solver responses retain the incumbent independently of these model clones.
+    # Release both clones before the main search's native allocations.
+    del complete_model, warm_model, feasibility_model
     status = cp_model.MODEL_INVALID if invalid else solver.solve(model)
     optimization_status = "MODEL_INVALID" if invalid else solver.status_name(status)
     elapsed_solve = 0 if invalid else warm_seconds + solver.wall_time
